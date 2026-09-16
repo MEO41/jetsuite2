@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from jetsuite2.api import Design  # noqa: E402
-from jetsuite2.stages import ORDER  # noqa: E402
+from jetsuite2.stages import CORE as ORDER  # noqa: E402  (core chain only)
 from jetsuite2.state.store import canonical_hash  # noqa: E402
 
 
@@ -47,7 +47,7 @@ def test_no_op_change_does_not_invalidate(tmp_path):
     d = make(tmp_path)
     v = d.store.version
     res = d.set({"cycle.OPR": 4.0})   # same as default
-    assert res["stale"] == {}
+    assert {k: v for k, v in res["stale"].items() if k in ORDER} == {}   # analysis stages are "never run", not stale
     rep = d.run()
     assert rep.ran == []
     assert d.store.version == v + 1  # the set itself is versioned

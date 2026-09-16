@@ -77,3 +77,42 @@ ruled lofts of planar sections (v0's robust construction).
   10 min through pyturbo-aero — replaced by an own camber law (10 s).
 * jetsuite: no subprocess per stage, no multi-venv, no four-ring architecture; cache keys over
   values; failures never exit 0; documentation budgeted against code.
+
+## v3 additions
+
+### Fidelity tiers and provenance
+Each stage declares `TIER` (its own method: L0 rules of thumb, L1 correlations / mean-line sizing,
+L2 mean-line loss models and FE beam rotordynamics, L3 external solver or test).  `overrides.<stage>.<field>`
+holds ingested values with tier, source and time; a stage's input hash includes its overrides, so an
+ingest re-runs the stage (which applies the override on top of its own result, recording `_provenance`)
+and everything downstream.  Rules carry the tier of the stage that produced them; `jet status` is the
+per-component view the brief asks for.
+
+### Analysis stages
+Opt-in stages (`CORE = False`) hang off the core outputs and are invalidated identically.  `jet run`
+never runs them, so the fast loop is preserved; `jet analyze` runs the stale ones.  Plots and data
+products go to `<design>/analysis/`.
+
+### Component maps and matching (`perf/`)
+`closs.py` / `tloss.py` evaluate one operating point from geometry; `maps.py` sweeps speed lines and
+stores beta-line maps; `matching.py` solves steady state (unknowns beta, ln PR_t, T04; residuals work
+balance, turbine flow, nozzle continuity) with a scan fallback; `transient.py` integrates the rotor on
+the quasi-steady components with a Wf/P3 control law and limiters.  `gas_fast.py` (tabulated thermo)
+keeps one matching evaluation at ~0.5 ms.
+
+### Studies
+`studies.py` runs the core chain on in-memory copies (no disk), stores results under `studies/` with the
+hash of the base inputs minus the varied variables; `jet study list` flags STALE studies.  NSGA-II uses
+rule failures as constraint violations (warns allowed); UQ uses `DEFAULT_UQ` bands derived from the
+validation errors; the RBF surrogate reports leave-one-out error so the user knows where an L2/L3
+evaluation is worth spending.
+
+### Test loop
+`testbench` (stage) produces the log a test cell would; `correlation.py` compares and calibrates a
+declared coefficient set against measured points; `report.readiness` writes the test-readiness report;
+`handoff.py` exports geometry + BCs + material cards and ingests solver results.
+
+### Non-negotiables kept
+Core chain sub-second (0.4 s); value-hash invalidation extends to every analysis and to studies;
+regression cases (boomsonic_v0, p500, validation database) run in `pytest` / `jet validate`;
+estimates labelled with tiers and bands.

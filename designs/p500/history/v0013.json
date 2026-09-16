@@ -1,8 +1,8 @@
 {
  "name": "p500",
- "version": 15,
+ "version": 13,
  "created": "2026-09-16T14:41:45",
- "updated": "2026-09-16T17:00:36",
+ "updated": "2026-09-16T16:58:14",
  "inputs": {
   "requirements": {
    "thrust_N": 500.0,
@@ -5875,30 +5875,30 @@
      "air_frac_cum": 0.235,
      "phi": 1.201131414138327,
      "far": 0.08203727558564773,
-     "T_K": 2351.737586958848,
-     "residence_ms": 1.1786758485299607,
-     "chemical_ms": 0.04632293878192109,
-     "Damkohler": 25.444755439177232,
+     "T_K": 461.0731964440862,
+     "residence_ms": 6.011922439227439,
+     "chemical_ms": 302578203255371.06,
+     "Damkohler": 1.986898717272597e-14,
      "volume_cm3": 437.3991443652638
     },
     "secondary": {
      "air_frac_cum": 0.575,
      "phi": 0.49089718664783794,
      "far": 0.03352827784804733,
-     "T_K": 1623.1126705940446,
-     "residence_ms": 0.5637027754713847,
-     "chemical_ms": 2.4515745018921846,
-     "Damkohler": 0.22993499689130606,
+     "T_K": 1623.1126705940455,
+     "residence_ms": 0.5637027754713844,
+     "chemical_ms": 2.451574501892167,
+     "Damkohler": 0.2299349968913076,
      "volume_cm3": 337.422197081775
     },
     "dilution": {
      "air_frac_cum": 1.0,
      "phi": 0.2822658823225068,
      "far": 0.019278759762627214,
-     "T_K": 1190.4807509170944,
-     "residence_ms": 0.630657449441404,
-     "chemical_ms": 390.26849547189096,
-     "Damkohler": 0.0016159578770990675,
+     "T_K": 1190.4807509170942,
+     "residence_ms": 0.6306574494414041,
+     "chemical_ms": 390.2684954718924,
+     "Damkohler": 0.001615957877099062,
      "volume_cm3": 474.89049959657217
     }
    },
@@ -5915,11 +5915,11 @@
    "phi_rbo": 3.0,
    "lbo_margin_design": 2.402262828276654,
    "lbo_margin_idle": 1.7206064377517842,
-   "pattern_factor": 0.2697598440979553,
-   "T_ngv_peak_K": 1335.844787122146,
-   "liner_wall_T_K": 977.9786658850581,
+   "pattern_factor": 0.4667493147081574,
+   "T_ngv_peak_K": 1471.5561134438042,
+   "liner_wall_T_K": 977.9786658850588,
    "gas_emissivity": 0.6,
-   "film_T_K": 1100.1949072265634,
+   "film_T_K": 1100.1949072265638,
    "relight": {
     "altitude_m": 6000.0,
     "windmill_N_frac": 0.12,
@@ -5973,9 +5973,9 @@
     "impeller_strain": 0.003562646686445018,
     "turbine_cycles": 3402539.9558776896,
     "turbine_strain": 0.0026299509628107958,
-    "turbine_cycles_with_thermal": 460.19280167376564,
-    "thermal_dT_max_K": 293.0187665970576,
-    "thermal_stress_Pa": 317485833.60791194
+    "turbine_cycles_with_thermal": 149.31812374449547,
+    "thermal_dT_max_K": 423.9118090982371,
+    "thermal_stress_Pa": 459308445.15794
    },
    "bearing": {
     "L10_h": 294.58163424871094,
@@ -7656,8 +7656,8 @@
   "transient": {
    "inputs_hash": "63f0f2880e849b7e",
    "outputs_hash": "b677970a0b60c717",
-   "at": "2026-09-16T17:00:14",
-   "elapsed_s": 50.8736,
+   "at": "2026-09-16T16:57:00",
+   "elapsed_s": 49.7123,
    "tier": "L2",
    "overridden": []
   },
@@ -7671,16 +7671,16 @@
   },
   "combustor1d": {
    "inputs_hash": "533abb293416377b",
-   "outputs_hash": "b310601da5eb0277",
-   "at": "2026-09-16T17:00:36",
-   "elapsed_s": 0.0025,
+   "outputs_hash": "7fec8ce88b8f77db",
+   "at": "2026-09-16T16:57:00",
+   "elapsed_s": 0.002,
    "tier": "L2",
    "overridden": []
   },
   "life": {
    "inputs_hash": "99c2984f8b47745d",
-   "outputs_hash": "e4c6778a84901c7c",
-   "at": "2026-09-16T17:00:14",
+   "outputs_hash": "12f7b6787b06708e",
+   "at": "2026-09-16T16:57:00",
    "elapsed_s": 0.0014,
    "tier": "L1",
    "overridden": []
@@ -7696,8 +7696,8 @@
   "manufacturing": {
    "inputs_hash": "b5506f299e008d24",
    "outputs_hash": "4d1a3fa3bb5cefa2",
-   "at": "2026-09-16T17:00:16",
-   "elapsed_s": 2.2551,
+   "at": "2026-09-16T16:57:21",
+   "elapsed_s": 2.2512,
    "tier": "L1",
    "overridden": []
   },
@@ -8941,10 +8941,10 @@
     "limit": 1200.0,
     "kind": "max",
     "unit": "K",
-    "source": "over-temperature limiter (the limiter holds the peak at the limit)",
+    "source": "over-temperature limiter",
     "note": "",
     "margin": 0.0,
-    "verdict": "pass",
+    "verdict": "warn",
     "tier": "L2"
    },
    {
@@ -9071,14 +9071,14 @@
    {
     "id": "C1D-2",
     "name": "primary-zone Damkohler number (residence/chemical)",
-    "value": 25.444755439177232,
+    "value": 1.986898717272597e-14,
     "limit": 5.0,
     "kind": "min",
     "unit": "",
     "source": "Da >> 1 required for stable combustion (global kinetics; order of magnitude)",
     "note": "",
-    "margin": 4.088951087835446,
-    "verdict": "pass",
+    "margin": -0.9999999999999961,
+    "verdict": "warn",
     "tier": "L2"
    },
    {
@@ -9123,26 +9123,26 @@
    {
     "id": "C1D-6",
     "name": "pattern factor into the turbine",
-    "value": 0.2697598440979553,
+    "value": 0.4667493147081574,
     "limit": 0.3,
     "kind": "max",
     "unit": "",
     "source": "Lefebvre: PF 0.2-0.35 for short annular liners",
-    "note": "peak NGV inlet temperature ~1336 K",
-    "margin": 0.10080051967348236,
-    "verdict": "pass",
+    "note": "peak NGV inlet temperature ~1472 K",
+    "margin": -0.5558310490271914,
+    "verdict": "warn",
     "tier": "L2"
    },
    {
     "id": "C1D-7",
     "name": "liner wall temperature vs material limit",
-    "value": 977.9786658850581,
+    "value": 977.9786658850588,
     "limit": 1253.0,
     "kind": "max",
     "unit": "K",
     "source": "IN625 T_max; radiation/convection/film balance",
     "note": "more film cooling, thermal barrier coating or IN625 -> Haynes 230",
-    "margin": 0.21949029059452663,
+    "margin": 0.21949029059452607,
     "verdict": "pass",
     "tier": "L2"
    },
@@ -9203,13 +9203,13 @@
    {
     "id": "LIFE-4",
     "name": "turbine bore LCF cycles incl. start thermal stress / scatter",
-    "value": 153.3976005579219,
+    "value": 49.77270791483182,
     "limit": 500.0,
     "kind": "min",
     "unit": "",
-    "source": "Manson universal slopes, IN713LC; thermal dT_max 293 K",
+    "source": "Manson universal slopes, IN713LC; thermal dT_max 424 K",
     "note": "slower start, thicker hub, or boreless wheel",
-    "margin": -0.6932047988841562,
+    "margin": -0.9004545841703364,
     "verdict": "fail",
     "tier": "L1"
    },
@@ -9445,10 +9445,10 @@
     "limit": 602.5872985602579,
     "kind": "max",
     "unit": "MPa",
-    "source": "billet-5axis: allowable x 1.0 (root sized to the limit)",
+    "source": "billet-5axis: allowable x 1.0",
     "note": "",
     "margin": 5.312683705562315e-07,
-    "verdict": "pass",
+    "verdict": "warn",
     "tier": "L1"
    },
    {

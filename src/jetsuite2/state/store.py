@@ -145,13 +145,17 @@ class DesignStore:
     def load(self) -> "DesignStore":
         with open(self.file, encoding="utf-8") as f:
             self.doc = json.load(f)
+        self.doc["_design_dir"] = str(self.dir)     # transient: never persisted
         return self
+
+    def _persistable(self) -> dict:
+        return {k: v for k, v in self.doc.items() if not k.startswith("_")}
 
     def save(self) -> None:
         self.doc["updated"] = _now()
         tmp = self.file.with_suffix(".json.tmp")
         with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(_clean(self.doc), f, indent=1, default=_json_default)
+            json.dump(_clean(self._persistable()), f, indent=1, default=_json_default)
         os.replace(tmp, self.file)
 
     def commit(self, message: str) -> int:
@@ -161,7 +165,7 @@ class DesignStore:
         self.history.mkdir(exist_ok=True)
         snap = self.history / f"v{self.doc['version']:04d}.json"
         with open(snap, "w", encoding="utf-8") as f:
-            json.dump(_clean(self.doc), f, indent=1, default=_json_default)
+            json.dump(_clean(self._persistable()), f, indent=1, default=_json_default)
         with open(self.history / "log.txt", "a", encoding="utf-8") as f:
             f.write(f"v{self.doc['version']:04d}  {_now()}  {message}\n")
         return self.doc["version"]
@@ -212,6 +216,7 @@ class DesignStore:
         keep_version = self.version
         self.doc = snap
         self.doc["version"] = keep_version
+        self.doc["_design_dir"] = str(self.dir)
         return self.commit(message or f"checkout v{version:04d}")
 
 

@@ -1,3 +1,15 @@
 v0001  2026-09-16T14:41:45  created
 v0002  2026-09-16T14:41:47  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, geometry
 v0003  2026-09-16T14:41:49  converge (2 passes): eta_c 0.805, eta_t 0.873
+v0004  2026-09-16T16:12:35  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, geometry
+v0005  2026-09-16T16:18:10  analyze maps FAILED offdesign
+v0006  2026-09-16T16:20:14  analyze offdesign
+v0007  2026-09-16T16:21:34  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, geometry
+v0008  2026-09-16T16:21:57  analyze maps, offdesign
+v0009  2026-09-16T16:23:24  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, geometry
+v0010  2026-09-16T16:23:46  analyze maps, offdesign
+v0011  2026-09-16T16:40:50  analyze offdesign, envelope, transient
+v0012  2026-09-16T16:53:14  analyze maps, offdesign, assess, transient, combustor1d, envelope, life, rotordyn, manufacturing, testbench
+v0013  2026-09-16T16:58:14  analyze transient, combustor1d, life, rotordyn, manufacturing, testbench
+v0014  2026-09-16T17:00:16  analyze transient, combustor1d, life, manufacturing
+v0015  2026-09-16T17:00:36  analyze combustor1d

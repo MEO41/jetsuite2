@@ -12,7 +12,10 @@ import time
 from dataclasses import dataclass, field
 from typing import Callable
 
-from .store import DesignStore, canonical_hash, flatten, project, _differs
+from .store import DesignStore, canonical_hash, flatten, project, _differs, set_path
+
+
+TIER_ORDER = {"L0": 0, "L1": 1, "L2": 2, "L2.5": 2.5, "L3": 3}
 
 
 @dataclass
@@ -22,9 +25,12 @@ class Stage:
     run: Callable[[dict], dict]            # full doc -> outputs dict (may include "_rules")
     doc: str = ""
     after: list[str] = field(default_factory=list)   # explicit ordering hints (usually inferred)
+    tier: str = "L1"                       # fidelity tier of the stage's own method
+    core: bool = True                      # core stages run by default; analysis stages are opt-in
 
     def input_hash(self, state: dict) -> str:
-        return canonical_hash(project(state, self.reads))
+        # overrides (ingested L3 results) for this stage are part of its inputs
+        return canonical_hash(project(state, list(self.reads) + [f"overrides.{self.name}.*"]))
 
     def upstream(self) -> set[str]:
         """Stage names whose outputs this stage reads."""
@@ -118,12 +124,15 @@ class StageGraph:
 
     # ---------------------------------------------------------------- run
     def run(self, store: DesignStore, upto: str | None = None, force: bool = False,
-            only: list[str] | None = None, verbose: Callable[[str], None] | None = None) -> RunReport:
+            only: list[str] | None = None, verbose: Callable[[str], None] | None = None,
+            include_analysis: bool = False) -> RunReport:
         rep = RunReport()
         for n in self.order:
             if only and n not in only:
                 continue
             st = self.stages[n]
+            if not st.core and not include_analysis and not (only and n in only):
+                continue
             h = st.input_hash(store.doc)
             stamp = store.stamps.get(n)
             if not force and stamp and stamp.get("inputs_hash") == h:
@@ -147,11 +156,22 @@ class StageGraph:
                 continue
             dt = time.perf_counter() - t0
             rules = out.pop("_rules", None)
+            # ingested higher-tier results replace the stage's own values (provenance recorded)
+            prov = {}
+            for fld, ov in (store.doc.get("overrides", {}).get(n, {}) or {}).items():
+                if ov.get("value") is None:
+                    continue
+                set_path(out, fld, ov["value"])      # dotted fields address nested outputs (e.g. impeller.sigma_peak_Pa)
+                prov[fld] = {"tier": ov.get("tier", "L3"), "source": ov.get("source", ""), "at": ov.get("at", "")}
+            out["_provenance"] = prov
             store.outputs[n] = out
             if rules is not None:
+                for r in rules:
+                    r.setdefault("tier", st.tier)
                 store.doc.setdefault("rules", {})[n] = rules
             store.stamps[n] = {"inputs_hash": h, "outputs_hash": canonical_hash(out),
-                               "at": time.strftime("%Y-%m-%dT%H:%M:%S"), "elapsed_s": round(dt, 4)}
+                               "at": time.strftime("%Y-%m-%dT%H:%M:%S"), "elapsed_s": round(dt, 4),
+                               "tier": st.tier, "overridden": sorted(prov)}
             rep.ran.append(n)
             rep.timings[n] = dt
             rep.changes[n] = _diff_flat(old, out)

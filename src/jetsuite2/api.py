@@ -112,6 +112,64 @@ class Design:
         self.store.commit(f"converge ({len(hist)} passes): eta_c {hist[-1]['eta_c_assumed']:.3f}, eta_t {hist[-1]['eta_t_assumed']:.3f}")
         return hist
 
+    def analyze(self, names: list[str] | None = None, force: bool = False, commit: bool = True, verbose=None):
+        """Run analysis stages (all of them, or the named ones with their stale core prerequisites)."""
+        from .stages import ANALYSIS
+        names = names or ANALYSIS
+        bad = [n for n in names if n not in ANALYSIS]
+        if bad:
+            raise ValueError(f"unknown analysis stage(s) {bad}; available: {', '.join(ANALYSIS)}")
+        # core first (cheap), then the requested analyses in graph order
+        rep_core = self.graph.run(self.store, verbose=verbose)
+        rep = self.graph.run(self.store, only=names, force=force, verbose=verbose, include_analysis=True)
+        rep.ran = rep_core.ran + rep.ran
+        rep.timings.update(rep_core.timings)
+        rep.changes.update(rep_core.changes)
+        rep.failed = {**rep_core.failed, **rep.failed}
+        if commit and (rep.ran or rep.failed):
+            self.store.commit("analyze " + ", ".join(n for n in rep.ran if n in names) +
+                              (" FAILED " + ", ".join(rep.failed) if rep.failed else ""))
+        return rep
+
+    # ---------------------------------------------------------------- ingest / provenance
+    def ingest(self, stage: str, fields: dict, tier: str = "L3", source: str = "", commit: bool = True) -> dict:
+        """Record external (CFD / FEA / test) results as overrides on a stage's outputs.
+
+        The stage's input hash includes its overrides, so the next run re-applies them and
+        everything downstream re-evaluates against the ingested values."""
+        import time as _t
+        if stage not in self.graph.stages:
+            raise ValueError(f"unknown stage {stage}")
+        ov = self.store.doc.setdefault("overrides", {}).setdefault(stage, {})
+        for k, v in fields.items():
+            if v is None or str(k).startswith("_"):
+                continue
+            ov[k] = {"value": v, "tier": tier, "source": source, "at": _t.strftime("%Y-%m-%dT%H:%M:%S")}
+        stale = self.graph.stale(self.store)
+        if commit:
+            self.store.commit(f"ingest {stage}: {', '.join(fields)} [{tier}] {source}")
+        return dict(stale=stale)
+
+    def clear_overrides(self, stage: str, fields: list[str] | None = None, commit: bool = True) -> None:
+        ov = self.store.doc.get("overrides", {}).get(stage, {})
+        for k in (fields or list(ov)):
+            ov.pop(k, None)
+        if commit:
+            self.store.commit(f"clear overrides {stage}: {', '.join(fields or ['all'])}")
+
+    def status(self) -> list[dict]:
+        """Per-stage fidelity status: tier, overrides, staleness, last run."""
+        stale = self.stale()
+        rows = []
+        for n in self.graph.order:
+            st = self.graph.stages[n]
+            stamp = self.store.stamps.get(n)
+            ov = self.store.doc.get("overrides", {}).get(n, {})
+            rows.append(dict(stage=n, core=st.core, tier=st.tier, ran=bool(stamp), at=(stamp or {}).get("at", ""),
+                             stale=stale.get(n, ""), overrides={k: v.get("tier", "L3") for k, v in ov.items()},
+                             elapsed_s=(stamp or {}).get("elapsed_s")))
+        return rows
+
     # ---------------------------------------------------------------- reading
     def outputs(self, stage: str | None = None) -> dict:
         return self.store.outputs if stage is None else self.store.outputs.get(stage, {})

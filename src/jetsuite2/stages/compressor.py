@@ -51,6 +51,7 @@ DEFAULTS = {
     "diffuser_radius_ratio": 1.38,  # r4/r2 (vaned; 1.35-1.5 practice) ; vaneless uses 1.8
     "n_vanes": "auto",
     "diffuser_exit_angle_deg": 35.0,    # vane trailing-edge angle from radial
+    "diffuser_throat_mach": 0.70,   # design Mach at the vaned-diffuser throat (sizes the throat; 0.65-0.85 practice)
     "diffuser_Cp": 0.62,            # static pressure recovery of the vaned channel
     "n_deswirl": "auto",
     "combustor_inlet_mach": 0.12,
@@ -254,9 +255,15 @@ def run(doc: dict) -> dict:
     A1 = math.pi * (r1s ** 2 - r1h ** 2)
     t_le = 0.5 * t_tip   # leading edge thinned to half the tip thickness
     beta1b_rms = beta1rms - inc   # blade angle (incidence opens the throat relative to the flow angle)
+    # spanwise-integrated throat choking capacity, same model as the off-design loss model (perf.closs)
+    from ..perf import closs as _closs
+    _g = _closs.CompressorGeometry(r1h=r1h, r1s=r1s, r2=r2, b2=b2, beta1b_rms=beta1b_rms, beta2b=beta2b, n_main=n_main,
+                                   n_split=n_split, split_frac=split_frac, t_le=t_le, t_te=t_tip, clearance=clearance,
+                                   L_ax=L_ax, r3=1.08 * r2, r4=1.4 * r2, b3=b2, n_vanes=0, vane_le_angle=0.0,
+                                   vane_te_angle=0.0, vane_throat=0.0)   # diffuser fields unused by the inducer choke
+    W_choke = _closs.inducer_choke_flow(_g, C1, T1, P1, omega)
     blk_throat = n_main * t_le / (2 * math.pi * r1rms * math.cos(math.radians(beta1b_rms)))
-    A_throat = A1 * math.cos(math.radians(beta1b_rms)) * (1 - blk_throat)
-    W_choke = gas.mass_flow_function(T01rel, P01rel, 1.0, A_throat)
+    A_throat = A1 * math.cos(math.radians(beta1b_rms)) * (1 - blk_throat) * _g.throat_factor
     choke_margin = W_choke / W - 1.0
 
     # ----------------------------------------------------------- efficiency
@@ -297,8 +304,18 @@ def run(doc: dict) -> dict:
         C4 = math.sqrt(max(2 * cp2 * (T02 - T4s_), 1.0))
         M4 = C4 / math.sqrt(g2 * gas.R_AIR * T4s_)
         b4 = b2 * 1.0   # parallel-wall diffuser
-        vane_le_angle = alpha3 - 2.0   # 2 deg negative incidence at design for range
-        throat_w = 2 * math.pi * r3 / n_vanes * math.cos(math.radians(alpha3))
+        # vane leading-edge angle: 2 deg negative incidence at design against the L2 loss-model swirl
+        # (the vaneless-space flow angle of perf.closs, so L1 geometry and L2 map are consistent)
+        _g.n_vanes = 0
+        _g.r3, _g.r4, _g.b3 = r3, r4, b4
+        _dp = _closs.evaluate(_g, W, omega, Tt2, Pt2)
+        alpha3_L2 = _dp.alpha3 if _dp.ok else alpha3
+        vane_le_angle = alpha3_L2 - 2.0
+        # throat sized for the design throat Mach (total state ~ impeller exit total minus the vaneless loss)
+        M_th = float(c("diffuser_throat_mach"))
+        A_th_vd = W / gas.mass_flow_function(T02, P02 * 0.985, M_th, 1.0)
+        throat_w = A_th_vd / (n_vanes * b4)
+        throat_geometric = 2 * math.pi * r3 / n_vanes * math.cos(math.radians(alpha3))
     else:
         r4 = 1.8 * r2
         n_vanes = 0
@@ -312,6 +329,7 @@ def run(doc: dict) -> dict:
         b4 = b2
         vane_le_angle = None
         throat_w = None
+        throat_geometric = None
     # deswirl: turn to axial and diffuse to the combustor inlet Mach
     M_comb = float(c("combustor_inlet_mach"))
     n_deswirl_in = c("n_deswirl")
@@ -387,7 +405,9 @@ def run(doc: dict) -> dict:
         # diffuser
         diffuser_type="vaned" if vaned else "vaneless", r3_m=r3, r4_m=r4, b4_m=b4, n_vanes=n_vanes,
         alpha3_deg=alpha3, M3=M3, C3_m_s=C3, vane_le_angle_deg=vane_le_angle, vane_te_angle_deg=alpha4,
-        vane_throat_width_m=throat_w, M4=M4, C4_m_s=C4, P4_Pa=P4, alpha4_deg=alpha4,
+        vane_throat_width_m=throat_w, vane_throat_geometric_m=throat_geometric,
+        alpha3_L2_deg=(alpha3_L2 if vaned else None),
+        diffuser_throat_mach=float(c("diffuser_throat_mach")), M4=M4, C4_m_s=C4, P4_Pa=P4, alpha4_deg=alpha4,
         n_deswirl=n_deswirl, r_deswirl_inner_m=r_deswirl_in, deswirl_length_m=L_deswirl, A_combustor_inlet_m2=A_comb_in,
         M_combustor_inlet=M_comb, casing_outer_radius_m=r4,
         _rules=rules,

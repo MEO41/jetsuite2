@@ -1,6 +1,6 @@
-# p500 - design report (v3)
+# p500 - design report (v15)
 
-Overall rule verdict: **warn**
+Overall rule verdict: **fail**. Fidelity tier of every claim is listed per stage at the end; L1 = correlation / mean-line sizing, L2 = mean-line loss models and FE beam rotordynamics, L3 = ingested solver or test results.
 
 ## Requirements and cycle
 
@@ -13,7 +13,7 @@ Overall rule verdict: **warn**
 | Tt3 / Tt5 | 461.1 / 1003 K |
 | turbine PR / NPR | 1.928 / 1.893 (choked) |
 | efficiencies assumed (c / t) | 0.8046 / 0.8733 |
-| efficiencies estimated (c / t) | 0.8069 / 0.8751 |
+| efficiencies estimated L1 (c / t) | 0.8069 / 0.8751 |
 
 ## Spool speed
 
@@ -29,8 +29,8 @@ Overall rule verdict: **warn**
 | U2 / backsweep / blades | 498.8 m/s / 30 deg / 8+8 |
 | slip / work coefficient | 0.8438 / 0.6821 |
 | exducer root / tip thickness | 1.772 / 0.657 mm |
-| diffuser | vaned, r3/r2 1.08, r4 90.66 mm, 11 vanes, M4 0.4141 |
-| choke margin | 0.08248 |
+| diffuser | vaned, r3/r2 1.08, r4 90.66 mm, 11 vanes, throat M 0.7 |
+| choke margin | 0.486 |
 
 ## Turbine
 
@@ -51,6 +51,17 @@ Annular, Ro 89.66 mm, Ri 41.21 mm, liner 92.25 mm long, U_ref 14.36 m/s, residen
 
 Bearings 71902C-HC (DN 1.14e+06 at MCS), journal 15 mm, tube 36 x 25.92 mm, span 108.1 mm. Forward criticals: 23844, 29174 rpm (rigid-body: 23844, 29174); first bending above scan ceiling 190312 rpm.
 
+Rotordynamics campaign (L2): max synchronous amplitude at G2.5 1.32 um, AF 3.31; exducer f1 1.931e+04 Hz, turbine blade f1 6519 Hz; resonance crossings in range: 0.
+
+
+## Life (L1, factor-of-3 scatter applied in the verdicts)
+
+Creep: blade 3.35e+06 h, disc rim 5.18e+07 h over the mission. LCF: impeller bore 8.29e+06 cycles, turbine bore 460 cycles (start thermal dT 293 K). Bearing L10 295 h (oil-mist). Containment: fragment 1.15e+04 J vs casing 1 mm (needs 7.3 mm).
+
+## Manufacturability (L1)
+
+Tip clearance stack-up: impeller worst case 0.17 mm (RSS 0.074) against 0.26 mm nominal; turbine 0.24 / 0.25 mm. Balance G2.5: 0.306 g mm per plane. Impeller (billet-5axis): min passage 12.3 mm, wrap 70.7 deg; flags: none. BOM 20 lines, ~6337 EUR, lead 10 weeks.
+
 ## Envelope and mass
 
 OD 183.3 mm x length 350.3 mm; estimated dry mass 6.44 kg.
@@ -70,6 +81,48 @@ OD 183.3 mm x length 350.3 mm; estimated dry mass 6.44 kg.
 | bearings | steel/ceramic | 0.028 |
 | housings_tunnel | AISI321 | 0.884 |
 | nozzle_tailcone | AISI321 | 0.453 |
+
+## Open risks and unresolved items
+
+* [L2] **MAP-6** compressor loss-model PR at design vs cycle OPR |diff|/OPR: 0.07941 vs 0.06  -> warn. loss model PR 4.318 vs cycle OPR 4.000
+* [L2] **OD-1** minimum surge margin along the running line: -0.1653 vs 0.1  -> fail. lower the running line (larger nozzle), more backsweep, or a bleed / variable geometry
+* [L2] **OD-4** idle surge margin: -0.1653 vs 0.08  -> warn. 
+* [L2] **ENV-2** worst-case surge margin over the envelope: 0.07715 vs 0.08  -> fail. hot-day / high-Mach corners load the compressor: consider a variable nozzle or bleed
+* [L2] **TRN-3** slam acceleration idle -> 95 % time: 8.35 vs 6 s -> warn. raise the accel limiter (watch SM)
+* [L2] **TRN-4** minimum surge margin during the slam acceleration: -0.08191 vs 0.05  -> fail. lower accel_limit or add bleed
+* [L2] **TRN-8** hung start with half starter torque avoided: 0 vs 1  -> warn. starter torque margin is thin
+* [L2] **TRN-9** overspeed on governor failure (peak N / design): 1.116 vs 1.15  -> warn. 
+* [L1] **LIFE-4** turbine bore LCF cycles incl. start thermal stress / scatter: 153.4 vs 500  -> fail. slower start, thicker hub, or boreless wheel
+* [L1] **LIFE-7** casing wall vs containment thickness (1/3 disc fragment at burst): 1 vs 7.261 mm -> warn. a containment ring around the turbine plane is the usual answer
+* [L1] **MFG-2** turbine tip clearance remaining at worst-case stack-up: 0.01 vs 0.05 mm -> fail. 
+* [L1] **MFG-6** impeller blade wrap / pitch (axial-view overlap): 1.572 vs 1.6  -> warn. 
+* Surge line: predicted by stall indicators with +/-30 % uncertainty on the margin; no validated vaned-diffuser stall method exists at this fidelity.
+* Efficiency correlations, stress concentration factors and life constants are conceptual-level; the UQ study quantifies their effect.
+
+## Fidelity tiers
+
+| stage | kind | tier | last run | overrides (ingested) |
+|---|---|---|---|---|
+| requirements | core | L0 | 2026-09-16T16:23:23 | - |
+| cycle | core | L1 | 2026-09-16T16:23:23 | - |
+| speed | core | L1 | 2026-09-16T16:23:23 | - |
+| compressor | core | L1 | 2026-09-16T16:23:23 | - |
+| turbine | core | L1 | 2026-09-16T16:23:23 | - |
+| combustor | core | L1 | 2026-09-16T16:23:23 | - |
+| layout | core | L0 | 2026-09-16T16:23:23 | - |
+| rotor | core | L2 | 2026-09-16T16:23:24 | - |
+| mechanical | core | L1 | 2026-09-16T16:23:24 | - |
+| geometry | core | L0 | 2026-09-16T16:23:24 | - |
+| maps | analysis | L2 | 2026-09-16T16:47:01 | - |
+| offdesign | analysis | L2 | 2026-09-16T16:47:03 | - |
+| assess | analysis | L2 | 2026-09-16T16:47:11 | - |
+| transient | analysis | L2 | 2026-09-16T17:00:14 | - |
+| combustor1d | analysis | L2 | 2026-09-16T17:00:36 | - |
+| envelope | analysis | L2 | 2026-09-16T16:50:36 | - |
+| life | analysis | L1 | 2026-09-16T17:00:14 | - |
+| rotordyn | analysis | L2 | 2026-09-16T16:57:19 | - |
+| manufacturing | analysis | L1 | 2026-09-16T17:00:16 | - |
+| testbench | analysis | L2 | 2026-09-16T16:58:14 (stale) | - |
 
 ## Design rules
 
@@ -99,9 +152,8 @@ OD 183.3 mm x length 350.3 mm; estimated dry mass 6.44 kg.
   ok   COMP-4     impeller material temperature (Tt3)               461.1 <= 673.0      K        +31.5 %  [Ti-6Al-4V T_max]
   ok   COMP-5     exit width ratio b2/D2                            0.059 >= 0.030               +95.2 %  [narrow exits lose efficiency (Rodgers): b2/D2 >= 0.03]
   ok   COMP-6     relative diffusion ratio W1s/W2                   1.717 <= 2.000               +14.1 %  [Dixon & Hall / Rodgers: W1s/W2 <= ~1.8-2.0 for attached flow]
-  WARN COMP-7     inducer throat choke margin at design             0.082 >= 0.100               -17.5 %  [Rodgers: design at <= 90 % of throat choke flow (boomsonic A3R.5)]
-       -> thinner LE, fewer main blades, larger hub/tip or lower inducer relative Mach
-  ok   COMP-7b    inducer throat not choked at design               0.082 >= 0                    +8.2 %  [throat mass-flow function]
+  ok   COMP-7     inducer throat choke margin at design             0.486 >= 0.100              +386.0 %  [Rodgers: design at <= 90 % of throat choke flow (boomsonic A3R.5)]
+  ok   COMP-7b    inducer throat not choked at design               0.486 >= 0                   +48.6 %  [throat mass-flow function]
   ok   COMP-8     radius ratio r2/r1s                               1.563 >= 1.300               +20.3 %  [Aungier: 1.4-2.2 for a radial impeller]
   ok   COMP-9     radius ratio r2/r1s upper                         1.563 <= 2.300               +32.0 %  [Aungier: 1.4-2.2 for a radial impeller]
   ok   COMP-10    impeller exit absolute Mach                       0.925 <= 1.100               +15.9 %  [vaned diffuser LE tolerates ~M 1.1 (Japikse)]
@@ -160,4 +212,81 @@ OD 183.3 mm x length 350.3 mm; estimated dry mass 6.44 kg.
   info GEO-1      dry mass estimate vs limit                        6.442 <= -          kg                [requirements.max_mass_kg]
   info GEO-2      thrust/weight (info)                              7.912    -          -                 [-]
   info GEO-3      flange screws count (info)                       15.000    -                            [ISO 4762 M2]
+[assess]
+  ok   ASS-1      compressor quality score (mean of items)          0.843 >= 0.750               +12.4 %  [assessment items AQ-C*]
+  ok   ASS-2      diffuser quality score                            1.000 >= 0.750               +33.3 %  [AQ-D*]
+  ok   ASS-3      turbine quality score                             0.981 >= 0.750               +30.7 %  [AQ-T*]
+[combustor1d]
+  ok   C1D-1      primary-zone equivalence ratio                    1.201 <= 1.400               +14.2 %  [Lefebvre: primary zone phi 0.8-1.4 for vaporiser combustors]
+  ok   C1D-1b     primary-zone equivalence ratio minimum            1.201 >= 0.800               +50.1 %  [Lefebvre: phi_pz >= 0.8 for stability]
+  ok   C1D-2      primary-zone Damkohler number (residence/chemical)     25.445 >= 5.000              +408.9 %  [Da >> 1 required for stable combustion (global kinetics; order of magnitude)]
+  ok   C1D-3      combustion efficiency (Lefebvre theta correlation)      0.985 >= 0.980                +0.5 %  [theta correlation calibrated on the fleet (+/-2 pts)]
+  ok   C1D-4      lean blow-out margin at design (phi_pz / phi_LBO)      2.402 >= 1.500               +60.2 %  [Lefebvre stability loop]
+  ok   C1D-5      lean blow-out margin at idle                      1.721 >= 1.200               +43.4 %  [Lefebvre stability loop at the idle point]
+  ok   C1D-6      pattern factor into the turbine                   0.270 <= 0.300               +10.1 %  [Lefebvre: PF 0.2-0.35 for short annular liners]
+  ok   C1D-7      liner wall temperature vs material limit          978.0 <= 1253.0     K        +21.9 %  [IN625 T_max; radiation/convection/film balance]
+  ok   C1D-8      altitude relight index (phi_LBO windmilling / phi_LBO design)      1.103 <= 2.500               +55.9 %  [Lefebvre loading at 6000 m, N 0.12]
+[maps]
+  ok   MAP-1      design-point surge margin (loss-model map, SAE definition)      0.211 >= 0.150               +40.8 %  [stall indicators in perf.closs; uncertainty +/-30 % of the margin]
+  ok   MAP-2      design-point choke margin (flow to choke / design flow - 1)      0.124 >= 0.080               +55.5 %  [inducer / diffuser throat choke on the design speed line]
+  ok   MAP-3      L2 loss-model compressor efficiency vs L1 estimate |diff|      0.031 <= 0.040               +22.4 %  [consistency between fidelity tiers]
+  ok   MAP-4      L2 loss-model turbine efficiency vs L1 estimate |diff|      0.038 <= 0.050               +24.3 %  [consistency between fidelity tiers]
+  ok   MAP-5      design-point vaned-diffuser incidence             2.000 <= 4.000               +50.0 %  [vane stall onset ~ +4-6 deg (Japikse)]
+  WARN MAP-6      compressor loss-model PR at design vs cycle OPR |diff|/OPR      0.079 <= 0.060               -32.3 %  [the sized geometry should deliver the cycle pressure ratio within the loss-model accuracy]
+       -> loss model PR 4.318 vs cycle OPR 4.000
+[offdesign]
+  FAIL OD-1       minimum surge margin along the running line      -0.165 >= 0.100              -265.3 %  [SAE margin from the L2 map at N 0.40; surge line uncertainty +/-30 %]
+       -> lower the running line (larger nozzle), more backsweep, or a bleed / variable geometry
+  ok   OD-2       max-thrust point recovers the design thrust       1.025 >= 0.950                +7.9 %  [map-based matching vs design-point cycle (consistency)]
+  ok   OD-3       idle speed fraction                               0.400 >= 0.350               +14.3 %  [micro-turbojet idle 30-40 % (JetCat 33-35 %)]
+  WARN OD-4       idle surge margin                                -0.165 >= 0.080              -306.6 %  [low-speed operability (boomsonic_v0 risk 4.2)]
+[envelope]
+  ok   ENV-1      fraction of envelope grid points cleared (converged, SM >= floor)      0.990 >= 0.900               +10.0 %  [SM floor 0.08; L2 maps]
+  FAIL ENV-2      worst-case surge margin over the envelope         0.077 >= 0.080                -3.6 %  [at alt 9000.0 m, M 0.8, dT 0.0 K]
+       -> hot-day / high-Mach corners load the compressor: consider a variable nozzle or bleed
+  ok   ENV-3      sea-level static max thrust vs design thrust      1.025 >= 0.950                +7.9 %  [envelope max-power point at SLS (T04- or N-limited)]
+[transient]
+  ok   TRN-1      start reaches idle                                1.000 >= 1.000                +0.0 %  [start sequence simulation]
+  ok   TRN-2      start light-off to self-sustain time              4.300 <= 8.000      s        +46.3 %  [micro-turbojet practice 3-8 s]
+  WARN TRN-3      slam acceleration idle -> 95 % time               8.350 <= 6.000      s        -39.2 %  [class practice 3-6 s (JetCat ~4 s)]
+       -> raise the accel limiter (watch SM)
+  FAIL TRN-4      minimum surge margin during the slam acceleration     -0.082 >= 0.050              -263.8 %  [transient excursion toward surge; surge line uncertainty +/-30 %]
+       -> lower accel_limit or add bleed
+  ok   TRN-5      T04 peak during acceleration vs limit            1200.0 <= 1200.0     K         +0.0 %  [over-temperature limiter (the limiter holds the peak at the limit)]
+  ok   TRN-6      deceleration 100 % -> idle time                   2.600 <= 8.000      s        +67.5 %  [class practice]
+  ok   TRN-7      hot start T04 peak (schedule x1.5)               1088.0 <= 1300.0     K        +16.3 %  [abnormal case: rich start]
+  WARN TRN-8      hung start with half starter torque avoided           0 >= 1.000              -100.0 %  [abnormal case]
+       -> starter torque margin is thin
+  WARN TRN-9      overspeed on governor failure (peak N / design)      1.116 <= 1.150                +3.0 %  [burst margin 1.2 x MCS must cover the overspeed reached before the fuel cut]
+[life]
+  ok   LIFE-1     turbine blade creep life over the mission / scatter  1.117e+06 >= 50.000     h      +2233160.2 %  [Larson-Miller from the IN713LC creep table (C 20.0), Robinson damage]
+  ok   LIFE-2     turbine disc rim creep life / scatter         1.727e+07 >= 50.000     h      +34543506.0 %  [as LIFE-1]
+  ok   LIFE-3     impeller bore LCF cycles / scatter            2.764e+06 >= 500.0             +552658.9 %  [Manson universal slopes, Ti-6Al-4V]
+  FAIL LIFE-4     turbine bore LCF cycles incl. start thermal stress / scatter      153.4 >= 500.0               -69.3 %  [Manson universal slopes, IN713LC; thermal dT_max 293 K]
+       -> slower start, thicker hub, or boreless wheel
+  ok   LIFE-5     bearing L10 life (ISO 281, lubrication/temperature factors)      294.6 >= 200.0      h        +47.3 %  [71902C-HC C 4.0 kN, P_eq 358 N, oil-mist]
+  ok   LIFE-6     bearing DN with the lubrication method            1.000 >= 1.000                +0.0 %  [catalogue DN x lubrication factor]
+  WARN LIFE-7     casing wall vs containment thickness (1/3 disc fragment at burst)      1.000 >= 7.261      mm       -86.2 %  [energy balance, AISI321 UTS at 700 K, k 3 (conceptual)]
+       -> a containment ring around the turbine plane is the usual answer
+[rotordyn]
+  ok   RD-1       first forward bending critical / MCS (nominal support)      2.500 >= 1.250              +100.0 %  [API 684 separation margin]
+  ok   RD-2       max synchronous vibration amplitude at G2.5 residual unbalance      1.321 <= 25.000     um       +94.7 %  [ISO 1940 G2.5; 25 um pk at the wheels is a common limit for tip clearance/seal rub]
+  ok   RD-3       amplification factor at the first response peak      3.313 <= 8.000               +58.6 %  [API 684: AF < 8 for a well-damped critical]
+  ok   RD-4       blade resonance crossings within the operating range          0 <= 0                    +0.0 %  [Campbell: exducer vs diffuser vane passing, turbine blade vs NGV passing]
+  ok   RD-5       blade resonance within +/-10 % of the design speed          0 <= 0                    +0.0 %  [no crossing at the dwell speed]
+  ok   RD-6       max bearing dynamic load at G2.5 / static capacity C0      0.005 <= 0.100               +94.7 %  [dynamic load should stay a small fraction of C0]
+[manufacturing]
+  ok   MFG-1      impeller tip clearance remaining at worst-case stack-up      0.093 >= 0.050      mm       +85.6 %  [tolerance chain (worst case)]
+  FAIL MFG-2      turbine tip clearance remaining at worst-case stack-up      0.010 >= 0.050      mm       -80.0 %  [tolerance chain incl. thermal growth]
+  ok   MFG-3      impeller efficiency scatter from clearance tolerance (RSS)      0.003 <= 0.010               +71.1 %  [0.3 x d(clr)/b2]
+  ok   MFG-4      balancing: required residual per plane vs achievable      0.306 >= 0.050      g mm    +512.9 %  [ISO 21940 G2.5 at 72500 rpm: 0.306 g mm per plane]
+  ok   MFG-5      minimum impeller passage width vs cutter         12.261 >= 3.000      mm      +308.7 %  [5-axis cutter access]
+  WARN MFG-6      impeller blade wrap / pitch (axial-view overlap)      1.572 <= 1.600                +1.8 %  [flank-milling reach]
+  ok   MFG-7      impeller features flagged                             0 <= 0                    +0.0 %  [machinability screen]
+  ok   MFG-8      turbine casting features flagged                      0 <= 0                    +0.0 %  [investment-casting screen]
+  ok   MFG-9      exducer root stress vs process-adjusted allowable      602.6 <= 602.6      MPa       +0.0 %  [billet-5axis: allowable x 1.0 (root sized to the limit)]
+  ok   MFG-10     turbine root stress vs process-adjusted allowable      297.8 <= 370.6      MPa      +19.7 %  [investment-cast: allowable x 0.85]
+[testbench]
+  ok   TB-1       virtual run completed without abort                   0 <= 0                    +0.0 %  [abort criteria]
+  ok   TB-2       max thrust reached on the bench vs design         1.066 >= 0.950               +12.2 %  [throttle step to 100 %]
 ```

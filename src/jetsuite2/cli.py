@@ -243,6 +243,130 @@ def cmd_cad(args):
             print("  " + c)
 
 
+def cmd_analyze(args):
+    d = _design(args)
+    from .stages import ANALYSIS
+    names = None if (not args.names or args.names == "all") else args.names.split(",")
+    t0 = time.perf_counter()
+    rep = d.analyze(names, force=args.force, verbose=print)
+    print(f"analysis finished in {time.perf_counter()-t0:.1f} s  (available: {', '.join(ANALYSIS)})")
+    print(rep.summary())
+    print(d.rules_text(only_problems=True))
+
+
+def cmd_status(args):
+    d = _design(args)
+    print(f"design '{d.doc['name']}' v{d.store.version}")
+    print(f"  {'stage':<14} {'kind':<9} {'tier':<5} {'last run':<20} {'stale':<32} overrides")
+    for r in d.status():
+        ov = ", ".join(f"{k}[{t}]" for k, t in r["overrides"].items()) or "-"
+        print(f"  {r['stage']:<14} {'core' if r['core'] else 'analysis':<9} {r['tier']:<5} {r['at'] or 'never':<20} {r['stale'][:32]:<32} {ov}")
+
+
+def cmd_ingest(args):
+    d = _design(args)
+    payload = json.loads(Path(args.file).read_text(encoding="utf-8"))
+    entries = payload if isinstance(payload, list) else [payload]
+    for e in entries:
+        res = d.ingest(e["stage"], e["fields"], tier=e.get("tier", "L3"), source=e.get("source", Path(args.file).name))
+        print(f"  ingested {e['stage']}: {', '.join(e['fields'])} as {e.get('tier', 'L3')} from {e.get('source', args.file)}")
+    stale = [s for s in ORDER if s in res["stale"]]
+    print("  will re-run: " + (", ".join(stale) or "nothing"))
+    if args.run:
+        rep = d.run()
+        _print_report(rep, d)
+
+
+def cmd_study(args):
+    d = _design(args)
+    from . import studies
+    if args.action == "list":
+        for s in studies.list_studies(d):
+            print(f"  {s['name']:<28} {s['kind']:<12} {s['n']:>5} pts  {s['at']}  {'STALE' if s['stale'] else 'current'}")
+        return
+    if args.action == "show":
+        print(studies.show(d, args.name))
+        return
+    spec = json.loads(args.spec) if args.spec and args.spec.strip().startswith("{") else \
+        (json.loads(Path(args.spec).read_text(encoding="utf-8")) if args.spec else {})
+    t0 = time.perf_counter()
+    res = studies.run_study(d, args.action, args.name, spec, verbose=print)
+    print(f"study '{args.name}' ({args.action}) finished in {time.perf_counter()-t0:.1f} s")
+    print(studies.show(d, args.name))
+
+
+def cmd_validate(args):
+    from .validation import cases
+    from .api import Design as _D
+    import tempfile
+    rows = []
+    if args.what in ("all", "compressor"):
+        rows += cases.validate_compressor_model()
+    if args.what in ("all", "turbine"):
+        rows += cases.validate_turbine_model()
+    if args.what in ("all", "fleet"):
+        def factory(e):
+            tmp = Path(tempfile.mkdtemp(prefix="jet_val_"))
+            ov = {"requirements.thrust_N": e["thrust_N"], "cycle.OPR": e["PR"], "speed.rpm": e["rpm"]}
+            d = _D.create(tmp / "d", e["model"], ov)
+            d.run()
+            return d
+        rows += cases.validate_design_chain(factory)
+    print(cases.format_results(rows))
+    n_out = sum(1 for r in rows if r["error"] is not None and abs(r["error"]) > r["tolerance"])
+    print(f"{len(rows)} comparisons, {n_out} outside tolerance")
+    if args.write:
+        Path(args.write).write_text(json.dumps(rows, indent=1), encoding="utf-8")
+
+
+def cmd_export(args):
+    d = _design(args)
+    from . import handoff
+    if args.kind == "cfd":
+        res = handoff.export_cfd(d, args.component)
+    else:
+        res = handoff.export_fea(d, args.component)
+    print(f"exported {args.kind} package for {args.component} -> {res['dir']}")
+    for k, v in res["files"].items():
+        print(f"  {k}: {v}")
+    print("  fill ingest_template.json with the solver results and run `jet ingest <file> --run`")
+
+
+def cmd_correlate(args):
+    d = _design(args)
+    from . import correlation
+    pts = correlation.read_test_csv(args.csv)
+    if args.calibrate:
+        res = correlation.calibrate(d, pts, tune=args.tune.split(",") if args.tune else None, verbose=print if args.verbose else None)
+        print(correlation.format_comparison(res["before"], "as-designed vs as-tested (before calibration)"))
+        print(correlation.format_comparison(res["after"], "after calibration"))
+        print("  tuned coefficients:")
+        for k, m in res["moves"].items():
+            print(f"    {k:<20} {m['before']:.4f} -> {m['after']:.4f}  ({m['change']:+.4f}; bounds {m['bounds']})")
+        print("  held: " + ", ".join(res["held"]))
+        if args.apply:
+            d.set(res["tuned"])
+            d.run()
+            print("  applied to the design (versioned); re-run analyses to propagate")
+        out = Path(d.dir) / "analysis" / "correlation.json"
+        out.parent.mkdir(exist_ok=True)
+        out.write_text(json.dumps(res, indent=1, default=str), encoding="utf-8")
+        print(f"  written {out}")
+    else:
+        res = correlation.compare(d, pts)
+        print(correlation.format_comparison(res, "as-designed vs as-tested"))
+
+
+def cmd_readiness(args):
+    d = _design(args)
+    from .report import readiness
+    text = readiness(d)
+    out = Path(d.dir) / "test_readiness.md"
+    out.write_text(text, encoding="utf-8")
+    print(text)
+    print(f"\n(written to {out})")
+
+
 def cmd_report(args):
     d = _design(args)
     from .report import render
@@ -311,6 +435,35 @@ def main(argv=None):
     p.set_defaults(fn=cmd_cad)
 
     p = sub.add_parser("report", help="write a markdown design report"); common(p); p.set_defaults(fn=cmd_report)
+
+    p = sub.add_parser("analyze", help="run analysis stages (maps, offdesign, envelope, transient, assess, life, ...)"); common(p)
+    p.add_argument("names", nargs="?", default="all", help="comma-separated stage names or 'all'")
+    p.add_argument("--force", action="store_true"); p.set_defaults(fn=cmd_analyze)
+
+    p = sub.add_parser("status", help="fidelity tier, staleness and overrides per stage"); common(p); p.set_defaults(fn=cmd_status)
+
+    p = sub.add_parser("ingest", help="ingest external (CFD/FEA/test) results as higher-tier overrides"); common(p)
+    p.add_argument("file", help="JSON: {stage, fields:{name:value}, tier, source} or a list of such")
+    p.add_argument("--run", action="store_true"); p.set_defaults(fn=cmd_ingest)
+
+    p = sub.add_parser("export", help="L3 hand-off package (geometry + BCs + material card) for CFD / FEA"); common(p)
+    p.add_argument("kind", choices=["cfd", "fea"]); p.add_argument("component", help="compressor|turbine (cfd), impeller|turbine (fea)")
+    p.set_defaults(fn=cmd_export)
+
+    p = sub.add_parser("correlate", help="compare / calibrate the model against test data (CSV)"); common(p)
+    p.add_argument("csv"); p.add_argument("--calibrate", action="store_true"); p.add_argument("--tune", help="comma-separated coefficients")
+    p.add_argument("--apply", action="store_true"); p.add_argument("--verbose", action="store_true"); p.set_defaults(fn=cmd_correlate)
+
+    p = sub.add_parser("readiness", help="write the test-readiness report"); common(p); p.set_defaults(fn=cmd_readiness)
+
+    p = sub.add_parser("validate", help="run the analysis methods against the validation database")
+    p.add_argument("what", nargs="?", default="all", choices=["all", "compressor", "turbine", "fleet"])
+    p.add_argument("--write", help="write the comparison rows to a JSON file"); p.set_defaults(fn=cmd_validate)
+
+    p = sub.add_parser("study", help="design-space studies: sweep / doe / optimize / uq / sensitivity"); common(p)
+    p.add_argument("action", choices=["sweep", "doe", "optimize", "uq", "sensitivity", "list", "show"])
+    p.add_argument("name", nargs="?"); p.add_argument("--spec", help="JSON string or file with the study specification")
+    p.set_defaults(fn=cmd_study)
 
     args = ap.parse_args(argv)
     args.fn(args)

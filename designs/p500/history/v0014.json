@@ -1,8 +1,8 @@
 {
  "name": "p500",
- "version": 15,
+ "version": 14,
  "created": "2026-09-16T14:41:45",
- "updated": "2026-09-16T17:00:36",
+ "updated": "2026-09-16T17:00:16",
  "inputs": {
   "requirements": {
    "thrust_N": 500.0,
@@ -5875,30 +5875,30 @@
      "air_frac_cum": 0.235,
      "phi": 1.201131414138327,
      "far": 0.08203727558564773,
-     "T_K": 2351.737586958848,
-     "residence_ms": 1.1786758485299607,
-     "chemical_ms": 0.04632293878192109,
-     "Damkohler": 25.444755439177232,
+     "T_K": 461.0731964440862,
+     "residence_ms": 6.011922439227439,
+     "chemical_ms": 302578203255371.06,
+     "Damkohler": 1.986898717272597e-14,
      "volume_cm3": 437.3991443652638
     },
     "secondary": {
      "air_frac_cum": 0.575,
      "phi": 0.49089718664783794,
      "far": 0.03352827784804733,
-     "T_K": 1623.1126705940446,
-     "residence_ms": 0.5637027754713847,
-     "chemical_ms": 2.4515745018921846,
-     "Damkohler": 0.22993499689130606,
+     "T_K": 1623.1126705940455,
+     "residence_ms": 0.5637027754713844,
+     "chemical_ms": 2.451574501892167,
+     "Damkohler": 0.2299349968913076,
      "volume_cm3": 337.422197081775
     },
     "dilution": {
      "air_frac_cum": 1.0,
      "phi": 0.2822658823225068,
      "far": 0.019278759762627214,
-     "T_K": 1190.4807509170944,
-     "residence_ms": 0.630657449441404,
-     "chemical_ms": 390.26849547189096,
-     "Damkohler": 0.0016159578770990675,
+     "T_K": 1190.4807509170942,
+     "residence_ms": 0.6306574494414041,
+     "chemical_ms": 390.2684954718924,
+     "Damkohler": 0.001615957877099062,
      "volume_cm3": 474.89049959657217
     }
    },
@@ -5917,9 +5917,9 @@
    "lbo_margin_idle": 1.7206064377517842,
    "pattern_factor": 0.2697598440979553,
    "T_ngv_peak_K": 1335.844787122146,
-   "liner_wall_T_K": 977.9786658850581,
+   "liner_wall_T_K": 977.9786658850588,
    "gas_emissivity": 0.6,
-   "film_T_K": 1100.1949072265634,
+   "film_T_K": 1100.1949072265638,
    "relight": {
     "altitude_m": 6000.0,
     "windmill_N_frac": 0.12,
@@ -7671,9 +7671,9 @@
   },
   "combustor1d": {
    "inputs_hash": "533abb293416377b",
-   "outputs_hash": "b310601da5eb0277",
-   "at": "2026-09-16T17:00:36",
-   "elapsed_s": 0.0025,
+   "outputs_hash": "d11ab30d7b96ac73",
+   "at": "2026-09-16T17:00:14",
+   "elapsed_s": 0.0021,
    "tier": "L2",
    "overridden": []
   },
@@ -9071,14 +9071,14 @@
    {
     "id": "C1D-2",
     "name": "primary-zone Damkohler number (residence/chemical)",
-    "value": 25.444755439177232,
+    "value": 1.986898717272597e-14,
     "limit": 5.0,
     "kind": "min",
     "unit": "",
     "source": "Da >> 1 required for stable combustion (global kinetics; order of magnitude)",
     "note": "",
-    "margin": 4.088951087835446,
-    "verdict": "pass",
+    "margin": -0.9999999999999961,
+    "verdict": "warn",
     "tier": "L2"
    },
    {
@@ -9136,13 +9136,13 @@
    {
     "id": "C1D-7",
     "name": "liner wall temperature vs material limit",
-    "value": 977.9786658850581,
+    "value": 977.9786658850588,
     "limit": 1253.0,
     "kind": "max",
     "unit": "K",
     "source": "IN625 T_max; radiation/convection/film balance",
     "note": "more film cooling, thermal barrier coating or IN625 -> Haynes 230",
-    "margin": 0.21949029059452663,
+    "margin": 0.21949029059452607,
     "verdict": "pass",
     "tier": "L2"
    },

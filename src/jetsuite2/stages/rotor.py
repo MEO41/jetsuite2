@@ -64,7 +64,8 @@ READS = ["inputs.rotor.*", "outputs.speed.rpm", "outputs.speed.omega_rad_s", "ou
          "outputs.layout.x_disc_mid_m", "outputs.layout.x_rotor1_m", "outputs.combustor.Ri_m"]
 
 
-def run(doc: dict) -> dict:
+def run(doc: dict, _capture: dict | None = None) -> dict:
+    """_capture (optional dict) receives the assembled RotorModel and node indices for the rotordyn campaign."""
     rt = lambda k: inp(doc, "rotor", k, DEFAULTS[k])  # noqa: E731
     rpm, omega, mcs = out(doc, "speed", "rpm"), out(doc, "speed", "omega_rad_s"), out(doc, "speed", "mcs_factor")
     d_j_min = out(doc, "speed", "journal_d_min_mm")
@@ -211,6 +212,10 @@ def run(doc: dict) -> dict:
     springs = {nearest(x_fb): k_sup, nearest(x_rb): k_sup}
     polar = {nearest(x_imp_cg): ip_imp, nearest(x_turb_cg): ip_turb}
     model = RotorModel(nodes, EI, rhoA, masses, inertias, polar, springs)
+    if _capture is not None:
+        _capture["model"] = model
+        _capture["nodes"] = dict(impeller=nearest(x_imp_cg), turbine=nearest(x_turb_cg), front_bearing=nearest(x_fb),
+                                 rear_bearing=nearest(x_rb))
     w_static = model.static_frequencies(4)
     static_rpm = [float(v * 60 / (2 * math.pi)) for v in w_static]
     rpm_mcs = rpm * mcs
