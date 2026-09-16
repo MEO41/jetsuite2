@@ -1,0 +1,61 @@
+{
+ "_doc": "Standard shaft, sealing and fastening hardware. Dimensions in mm unless stated. retaining_rings: DIN 471 (external, on shaft d) and DIN 472 (internal, in bore D): groove diameter d2/D2, groove width m, ring thickness s, free OD/ID d3. screws: ISO 4762 socket head cap screws (dk head dia, k head height, s hex key), property class 12.9 proof 970 MPa / 8.8 proof 580 MPa; tap drill = d - pitch. locknuts: DIN 981 KM series with DIN 5406 MB tab washers. o_rings: ISO 3601 cross-sections; compound temperature limits (continuous). igniter: model-engine glow plug 1/4-32 UNEF used as the combustor igniter in commercial micro-turbojets. All values from the standards' tables or manufacturer catalogues; verify before hardware.",
+ "retaining_rings": [
+  {"id": "DIN471-8",  "kind": "external", "d": 8,  "d2": 7.6,  "m": 0.9, "s": 0.8, "d3": 7.2},
+  {"id": "DIN471-10", "kind": "external", "d": 10, "d2": 9.6,  "m": 1.1, "s": 1.0, "d3": 9.3},
+  {"id": "DIN471-12", "kind": "external", "d": 12, "d2": 11.5, "m": 1.1, "s": 1.0, "d3": 11.0},
+  {"id": "DIN471-15", "kind": "external", "d": 15, "d2": 14.3, "m": 1.1, "s": 1.0, "d3": 13.8},
+  {"id": "DIN471-17", "kind": "external", "d": 17, "d2": 16.2, "m": 1.1, "s": 1.0, "d3": 15.7},
+  {"id": "DIN471-20", "kind": "external", "d": 20, "d2": 19.0, "m": 1.3, "s": 1.2, "d3": 18.5},
+  {"id": "DIN471-25", "kind": "external", "d": 25, "d2": 23.9, "m": 1.3, "s": 1.2, "d3": 23.2},
+  {"id": "DIN471-30", "kind": "external", "d": 30, "d2": 28.6, "m": 1.6, "s": 1.5, "d3": 27.9},
+  {"id": "DIN472-22", "kind": "internal", "d": 22, "d2": 23.0, "m": 1.1, "s": 1.0, "d3": 23.5},
+  {"id": "DIN472-24", "kind": "internal", "d": 24, "d2": 25.2, "m": 1.3, "s": 1.2, "d3": 25.9},
+  {"id": "DIN472-26", "kind": "internal", "d": 26, "d2": 27.2, "m": 1.3, "s": 1.2, "d3": 27.9},
+  {"id": "DIN472-28", "kind": "internal", "d": 28, "d2": 29.4, "m": 1.3, "s": 1.2, "d3": 30.1},
+  {"id": "DIN472-30", "kind": "internal", "d": 30, "d2": 31.4, "m": 1.3, "s": 1.2, "d3": 32.1},
+  {"id": "DIN472-32", "kind": "internal", "d": 32, "d2": 33.7, "m": 1.3, "s": 1.2, "d3": 34.4},
+  {"id": "DIN472-35", "kind": "internal", "d": 35, "d2": 37.0, "m": 1.3, "s": 1.2, "d3": 37.8},
+  {"id": "DIN472-37", "kind": "internal", "d": 37, "d2": 39.0, "m": 1.3, "s": 1.2, "d3": 39.8},
+  {"id": "DIN472-40", "kind": "internal", "d": 40, "d2": 42.5, "m": 1.85, "s": 1.75, "d3": 43.5},
+  {"id": "DIN472-42", "kind": "internal", "d": 42, "d2": 44.5, "m": 1.85, "s": 1.75, "d3": 45.5},
+  {"id": "DIN472-47", "kind": "internal", "d": 47, "d2": 49.5, "m": 1.85, "s": 1.75, "d3": 50.5}
+ ],
+ "screws": [
+  {"id": "M2",   "d": 2.0, "pitch": 0.40, "dk": 3.8,  "k": 2.0, "s": 1.5, "lengths": [4, 5, 6, 8, 10, 12, 16], "A_s_mm2": 2.07},
+  {"id": "M2.5", "d": 2.5, "pitch": 0.45, "dk": 4.5,  "k": 2.5, "s": 2.0, "lengths": [5, 6, 8, 10, 12, 16, 20], "A_s_mm2": 3.39},
+  {"id": "M3",   "d": 3.0, "pitch": 0.50, "dk": 5.5,  "k": 3.0, "s": 2.5, "lengths": [5, 6, 8, 10, 12, 16, 20, 25, 30], "A_s_mm2": 5.03},
+  {"id": "M4",   "d": 4.0, "pitch": 0.70, "dk": 7.0,  "k": 4.0, "s": 3.0, "lengths": [6, 8, 10, 12, 16, 20, 25, 30, 35, 40], "A_s_mm2": 8.78},
+  {"id": "M5",   "d": 5.0, "pitch": 0.80, "dk": 8.5,  "k": 5.0, "s": 4.0, "lengths": [8, 10, 12, 16, 20, 25, 30, 35, 40, 50], "A_s_mm2": 14.2},
+  {"id": "M6",   "d": 6.0, "pitch": 1.00, "dk": 10.0, "k": 6.0, "s": 5.0, "lengths": [10, 12, 16, 20, 25, 30, 35, 40, 50, 60], "A_s_mm2": 20.1},
+  {"id": "M8",   "d": 8.0, "pitch": 1.25, "dk": 13.0, "k": 8.0, "s": 6.0, "lengths": [12, 16, 20, 25, 30, 35, 40, 50, 60, 80], "A_s_mm2": 36.6}
+ ],
+ "screw_classes": {"12.9": {"proof_MPa": 970, "uts_MPa": 1220, "T_max": 573}, "8.8": {"proof_MPa": 580, "uts_MPa": 800, "T_max": 573}, "A2-70": {"proof_MPa": 450, "uts_MPa": 700, "T_max": 773}},
+ "locknuts": [
+  {"id": "KM0",  "thread": "M10x0.75", "d": 10, "pitch": 0.75, "od": 18, "height": 4, "washer": "MB0"},
+  {"id": "KM1",  "thread": "M12x1",    "d": 12, "pitch": 1.0,  "od": 22, "height": 4, "washer": "MB1"},
+  {"id": "KM2",  "thread": "M15x1",    "d": 15, "pitch": 1.0,  "od": 25, "height": 5, "washer": "MB2"},
+  {"id": "KM3",  "thread": "M17x1",    "d": 17, "pitch": 1.0,  "od": 28, "height": 5, "washer": "MB3"},
+  {"id": "KM4",  "thread": "M20x1",    "d": 20, "pitch": 1.0,  "od": 32, "height": 6, "washer": "MB4"},
+  {"id": "KM5",  "thread": "M25x1.5",  "d": 25, "pitch": 1.5,  "od": 38, "height": 7, "washer": "MB5"},
+  {"id": "M6x0.75-hex",  "thread": "M6x0.75",  "d": 6,  "pitch": 0.75, "od": 10, "height": 5, "washer": null, "note": "fine-thread hex nut, impeller tip nut on small engines"},
+  {"id": "M8x0.75-hex",  "thread": "M8x0.75",  "d": 8,  "pitch": 0.75, "od": 13, "height": 6, "washer": null, "note": "fine-thread hex nut"},
+  {"id": "M10x0.75-hex", "thread": "M10x0.75", "d": 10, "pitch": 0.75, "od": 16, "height": 7, "washer": null, "note": "fine-thread hex nut"}
+ ],
+ "o_rings": [
+  {"id": "ISO3601-CS1.78", "cs": 1.78, "groove_depth": 1.40, "groove_width": 2.40, "id_range": [3, 100]},
+  {"id": "ISO3601-CS2.62", "cs": 2.62, "groove_depth": 2.10, "groove_width": 3.50, "id_range": [5, 200]},
+  {"id": "ISO3601-CS3.53", "cs": 3.53, "groove_depth": 2.85, "groove_width": 4.70, "id_range": [10, 300]}
+ ],
+ "o_ring_compounds": {"NBR": {"T_max": 373}, "FKM": {"T_max": 473}, "silicone": {"T_max": 503}, "FFKM": {"T_max": 573}},
+ "igniters": [
+  {"id": "glow-1/4-32", "thread": "1/4-32 UNEF", "d": 6.35, "pitch": 0.794, "hex": 8.0, "body_length": 12.0, "reach": 6.0, "note": "model-engine glow plug, kerosene-start igniter"}
+ ],
+ "sensors": [
+  {"id": "EGT-K-M8", "thread": "M8x1", "d": 8, "probe_d": 3.0, "probe_length": 25, "T_max": 1373, "note": "K-type sheathed thermocouple, jet-pipe EGT"}
+ ],
+ "seals": [
+  {"id": "labyrinth-generic", "kind": "labyrinth", "radial_clearance_min": 0.10, "radial_clearance_ratio": 0.004, "tooth_pitch_ratio": 0.6, "n_teeth": 4, "note": "parametric labyrinth seal: clearance = max(min, ratio*d); pitch = ratio*clearance*... resolved in cad.hardware"},
+  {"id": "piston-ring-generic", "kind": "piston_ring", "radial_thickness_ratio": 0.045, "axial_width": 1.5, "T_max": 773, "note": "split cast-iron / Ni-resist ring in a groove, gas-side buffer seal"}
+ ]
+}

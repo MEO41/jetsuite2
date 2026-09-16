@@ -1,0 +1,403 @@
+{
+ "builders": {
+  "impeller": {
+   "key": "96eda1f7e3dca184",
+   "files": {
+    "impeller": "impeller.96eda1f7e3dca184.brep",
+    "impeller_nut": "impeller_nut.96eda1f7e3dca184.brep"
+   },
+   "materials": {
+    "impeller": "Ti-6Al-4V",
+    "impeller_nut": "AISI4340"
+   },
+   "valid": {
+    "impeller": true,
+    "impeller_nut": true
+   },
+   "elapsed_s": 10.68539889999738,
+   "built_at": "2026-09-16T14:42:13"
+  },
+  "inlet": {
+   "key": "b3b2fadc2e3e910c",
+   "files": {
+    "inlet_shroud": "inlet_shroud.b3b2fadc2e3e910c.brep"
+   },
+   "materials": {
+    "inlet_shroud": "Al6061-T6"
+   },
+   "valid": {
+    "inlet_shroud": true
+   },
+   "elapsed_s": 0.05348450000019511,
+   "built_at": "2026-09-16T14:42:13"
+  },
+  "diffuser": {
+   "key": "3f1ee1bd9fccf8e3",
+   "files": {
+    "diffuser_back_plate": "diffuser_back_plate.3f1ee1bd9fccf8e3.brep",
+    "diffuser_vanes": "diffuser_vanes.3f1ee1bd9fccf8e3.brep",
+    "deswirl_vanes": "deswirl_vanes.3f1ee1bd9fccf8e3.brep",
+    "deswirl_inner_wall": "deswirl_inner_wall.3f1ee1bd9fccf8e3.brep"
+   },
+   "materials": {
+    "diffuser_back_plate": "Al2618-T61",
+    "diffuser_vanes": "Al2618-T61",
+    "deswirl_vanes": "Al2618-T61",
+    "deswirl_inner_wall": "Al2618-T61"
+   },
+   "valid": {
+    "diffuser_back_plate": true,
+    "diffuser_vanes": true,
+    "deswirl_vanes": true,
+    "deswirl_inner_wall": true
+   },
+   "elapsed_s": 0.12146699999721022,
+   "built_at": "2026-09-16T14:42:14"
+  },
+  "casing": {
+   "key": "4283ab0ff3d13424",
+   "files": {
+    "outer_casing": "outer_casing.4283ab0ff3d13424.brep",
+    "flange_screws_front": "flange_screws_front.4283ab0ff3d13424.brep",
+    "flange_screws_rear": "flange_screws_rear.4283ab0ff3d13424.brep"
+   },
+   "materials": {
+    "outer_casing": "AISI321",
+    "flange_screws_front": "AISI316",
+    "flange_screws_rear": "AISI316"
+   },
+   "valid": {
+    "outer_casing": true,
+    "flange_screws_front": true,
+    "flange_screws_rear": true
+   },
+   "elapsed_s": 0.13902669999879436,
+   "built_at": "2026-09-16T14:42:15"
+  },
+  "combustor": {
+   "key": "4283ab0ff3d13424",
+   "files": {
+    "liner_outer": "liner_outer.4283ab0ff3d13424.brep",
+    "liner_inner": "liner_inner.4283ab0ff3d13424.brep",
+    "liner_dome": "liner_dome.4283ab0ff3d13424.brep",
+    "vaporisers": "vaporisers.4283ab0ff3d13424.brep",
+    "inner_casing": "inner_casing.4283ab0ff3d13424.brep",
+    "igniter_1": "igniter_1.4283ab0ff3d13424.brep"
+   },
+   "materials": {
+    "liner_outer": "IN625",
+    "liner_inner": "IN625",
+    "liner_dome": "IN625",
+    "vaporisers": "IN625",
+    "inner_casing": "AISI321",
+    "igniter_1": "AISI316"
+   },
+   "valid": {
+    "liner_outer": true,
+    "liner_inner": true,
+    "liner_dome": true,
+    "vaporisers": true,
+    "inner_casing": true,
+    "igniter_1": true
+   },
+   "elapsed_s": 4.937345700000151,
+   "built_at": "2026-09-16T14:42:24"
+  },
+  "ngv": {
+   "key": "f2596fb3dfd7f3e4",
+   "files": {
+    "ngv_ring": "ngv_ring.f2596fb3dfd7f3e4.brep"
+   },
+   "materials": {
+    "ngv_ring": "IN713LC"
+   },
+   "valid": {
+    "ngv_ring": true
+   },
+   "elapsed_s": 3.576342599997588,
+   "built_at": "2026-09-16T14:42:29"
+  },
+  "turbine": {
+   "key": "a8424156e2c989b2",
+   "files": {
+    "turbine_wheel": "turbine_wheel.a8424156e2c989b2.brep",
+    "turbine_shroud": "turbine_shroud.a8424156e2c989b2.brep",
+    "turbine_nut": "turbine_nut.a8424156e2c989b2.brep"
+   },
+   "materials": {
+    "turbine_wheel": "IN713LC",
+    "turbine_shroud": "AISI321",
+    "turbine_nut": "IN718"
+   },
+   "valid": {
+    "turbine_wheel": true,
+    "turbine_shroud": true,
+    "turbine_nut": true
+   },
+   "elapsed_s": 8.343653600000835,
+   "built_at": "2026-09-16T14:42:42"
+  },
+  "shaft": {
+   "key": "45f05ec77f639298",
+   "files": {
+    "shaft": "shaft.45f05ec77f639298.brep",
+    "bearing_front": "bearing_front.45f05ec77f639298.brep",
+    "bearing_rear": "bearing_rear.45f05ec77f639298.brep",
+    "retaining_ring_front": "retaining_ring_front.45f05ec77f639298.brep",
+    "retaining_ring_rear": "retaining_ring_rear.45f05ec77f639298.brep"
+   },
+   "materials": {
+    "shaft": "AISI4340",
+    "bearing_front": "bearing-steel",
+    "bearing_rear": "bearing-steel",
+    "retaining_ring_front": "AISI316",
+    "retaining_ring_rear": "AISI316"
+   },
+   "valid": {
+    "shaft": true,
+    "bearing_front": true,
+    "bearing_rear": true,
+    "retaining_ring_front": true,
+    "retaining_ring_rear": true
+   },
+   "elapsed_s": 0.17690909999873838,
+   "built_at": "2026-09-16T14:42:42"
+  },
+  "housings": {
+   "key": "eda69256b0088bc2",
+   "files": {
+    "housing_front": "housing_front.eda69256b0088bc2.brep",
+    "oring_front": "oring_front.eda69256b0088bc2.brep",
+    "shaft_tunnel": "shaft_tunnel.eda69256b0088bc2.brep",
+    "housing_rear": "housing_rear.eda69256b0088bc2.brep"
+   },
+   "materials": {
+    "housing_front": "AISI321",
+    "oring_front": "FKM",
+    "shaft_tunnel": "AISI321",
+    "housing_rear": "AISI321"
+   },
+   "valid": {
+    "housing_front": true,
+    "oring_front": true,
+    "shaft_tunnel": true,
+    "housing_rear": true
+   },
+   "elapsed_s": 0.05108219999965513,
+   "built_at": "2026-09-16T14:42:42"
+  },
+  "nozzle": {
+   "key": "112d9b592b8be7a1",
+   "files": {
+    "nozzle": "nozzle.112d9b592b8be7a1.brep",
+    "tail_cone": "tail_cone.112d9b592b8be7a1.brep",
+    "tail_cone_struts": "tail_cone_struts.112d9b592b8be7a1.brep",
+    "hot_casing": "hot_casing.112d9b592b8be7a1.brep",
+    "egt_probe": "egt_probe.112d9b592b8be7a1.brep"
+   },
+   "materials": {
+    "nozzle": "AISI321",
+    "tail_cone": "AISI321",
+    "tail_cone_struts": "AISI321",
+    "hot_casing": "AISI321",
+    "egt_probe": "AISI316"
+   },
+   "valid": {
+    "nozzle": true,
+    "tail_cone": true,
+    "tail_cone_struts": true,
+    "hot_casing": true,
+    "egt_probe": true
+   },
+   "elapsed_s": 0.10107130000324105,
+   "built_at": "2026-09-16T14:42:42"
+  }
+ },
+ "parts": {
+  "impeller": {
+   "volume_cm3": 200.48850188503124,
+   "mass_kg": 0.8881640633506884,
+   "valid": true
+  },
+  "impeller_nut": {
+   "volume_cm3": 1.146174106297649,
+   "mass_kg": 0.008997466734436544,
+   "valid": true
+  },
+  "inlet_shroud": {
+   "volume_cm3": 158.4959157102916,
+   "mass_kg": 0.4279389724177873,
+   "valid": true
+  },
+  "diffuser_back_plate": {
+   "volume_cm3": 113.90510450373883,
+   "mass_kg": 0.31437808843031917,
+   "valid": true
+  },
+  "diffuser_vanes": {
+   "volume_cm3": 2.235135444908585,
+   "mass_kg": 0.006168973827947696,
+   "valid": true
+  },
+  "deswirl_vanes": {
+   "volume_cm3": 3.6061846430239095,
+   "mass_kg": 0.00995306961474599,
+   "valid": true
+  },
+  "deswirl_inner_wall": {
+   "volume_cm3": 13.505877490076877,
+   "mass_kg": 0.03727622187261218,
+   "valid": true
+  },
+  "outer_casing": {
+   "volume_cm3": 96.97227684036933,
+   "mass_kg": 0.7660809870389177,
+   "valid": true
+  },
+  "flange_screws_front": {
+   "volume_cm3": 0.6821515739612798,
+   "mass_kg": 0.005457212591690239,
+   "valid": true
+  },
+  "flange_screws_rear": {
+   "volume_cm3": 0.6821515739612797,
+   "mass_kg": 0.005457212591690238,
+   "valid": true
+  },
+  "liner_outer": {
+   "volume_cm3": 30.97318930312514,
+   "mass_kg": 0.2614137177183762,
+   "valid": true
+  },
+  "liner_inner": {
+   "volume_cm3": 18.92297729733103,
+   "mass_kg": 0.15970992838947393,
+   "valid": true
+  },
+  "liner_dome": {
+   "volume_cm3": 7.414381332141638,
+   "mass_kg": 0.06257737844327543,
+   "valid": true
+  },
+  "vaporisers": {
+   "volume_cm3": 21.73145674578441,
+   "mass_kg": 0.18341349493442044,
+   "valid": true
+  },
+  "inner_casing": {
+   "volume_cm3": 28.92349517621973,
+   "mass_kg": 0.22849561189213588,
+   "valid": true
+  },
+  "igniter_1": {
+   "volume_cm3": 1.2273097737696557,
+   "mass_kg": 0.009818478190157248,
+   "valid": true
+  },
+  "ngv_ring": {
+   "volume_cm3": 41.36405666315986,
+   "mass_kg": 0.3309124533052789,
+   "valid": true
+  },
+  "turbine_wheel": {
+   "volume_cm3": 75.73394569726626,
+   "mass_kg": 0.6058715655781302,
+   "valid": true
+  },
+  "turbine_shroud": {
+   "volume_cm3": 13.950467324471669,
+   "mass_kg": 0.11020869186332619,
+   "valid": true
+  },
+  "turbine_nut": {
+   "volume_cm3": 2.481072798172539,
+   "mass_kg": 0.020319986217033095,
+   "valid": true
+  },
+  "shaft": {
+   "volume_cm3": 65.42849117042807,
+   "mass_kg": 0.5136136556878604,
+   "valid": true
+  },
+  "bearing_front": {
+   "volume_cm3": 1.7928305522033374,
+   "mass_kg": 0.013984078307186032,
+   "valid": true
+  },
+  "bearing_rear": {
+   "volume_cm3": 1.7928305522033374,
+   "mass_kg": 0.013984078307186032,
+   "valid": true
+  },
+  "retaining_ring_front": {
+   "volume_cm3": 0.17513145968646565,
+   "mass_kg": 0.0014010516774917254,
+   "valid": true
+  },
+  "retaining_ring_rear": {
+   "volume_cm3": 0.17513145968646565,
+   "mass_kg": 0.0014010516774917254,
+   "valid": true
+  },
+  "housing_front": {
+   "volume_cm3": 22.166869825390325,
+   "mass_kg": 0.17511827162058358,
+   "valid": true
+  },
+  "oring_front": {
+   "volume_cm3": 0.36727618709391296,
+   "mass_kg": 0.0006610971367690433,
+   "valid": true
+  },
+  "shaft_tunnel": {
+   "volume_cm3": 18.39312754617045,
+   "mass_kg": 0.14530570761474657,
+   "valid": true
+  },
+  "housing_rear": {
+   "volume_cm3": 19.403600492803097,
+   "mass_kg": 0.15328844389314447,
+   "valid": true
+  },
+  "nozzle": {
+   "volume_cm3": 45.51577129849381,
+   "mass_kg": 0.35957459325810115,
+   "valid": true
+  },
+  "tail_cone": {
+   "volume_cm3": 16.048370938562876,
+   "mass_kg": 0.12678213041464675,
+   "valid": true
+  },
+  "tail_cone_struts": {
+   "volume_cm3": 7.494763248278063,
+   "mass_kg": 0.0592086296613967,
+   "valid": true
+  },
+  "hot_casing": {
+   "volume_cm3": 58.604279758909485,
+   "mass_kg": 0.46297381009538496,
+   "valid": true
+  },
+  "egt_probe": {
+   "volume_cm3": 1.605499019724638,
+   "mass_kg": 0.012843992157797104,
+   "valid": true
+  }
+ },
+ "mass_total_kg": 6.482754166512229,
+ "design_version": 3,
+ "checks": [
+  "clear  impeller / inlet_shroud: common volume 0.000 cm3",
+  "clear  impeller / housing_front (no axial overlap)",
+  "clear  turbine_wheel / turbine_shroud: common volume 0.003 cm3",
+  "clear  turbine_wheel / ngv_ring: common volume 0.000 cm3",
+  "clear  shaft / shaft_tunnel: common volume 0.000 cm3",
+  "clear  shaft / housing_front: common volume 0.000 cm3",
+  "clear  shaft / housing_rear: common volume 0.000 cm3",
+  "clear  liner_outer / outer_casing: common volume 0.000 cm3",
+  "clear  liner_inner / inner_casing: common volume 0.000 cm3",
+  "clear  impeller / diffuser_vanes: common volume 0.000 cm3",
+  "clear  impeller / diffuser_back_plate: common volume 0.000 cm3"
+ ]
+}
