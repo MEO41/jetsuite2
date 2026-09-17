@@ -104,29 +104,22 @@ class RotorModel:
         A[nr:, :nr] = -self.Mr_inv @ self.Kr
         A[nr:, nr:] = -self.Mr_inv @ (omega_spin * self.Gr)
         lam, vec_r = eig(A)
-        vec = self.phi4 @ vec_r[:nr, :]        # back to physical DOFs (displacement part)
-        out = []
+        keep = np.where(lam.imag > 1e-6)[0]
+        vec = self.phi4 @ vec_r[:nr, keep]     # back to physical DOFs (displacement part), positive-frequency modes only
         wn = self.wheel_node
-        for i in range(len(lam)):
-            f = lam[i].imag
-            if f <= 1e-6:
-                continue
-            V = vec[2 * wn, i]                 # v at the wheel
-            W = vec[2 * self.n + 2 * wn, i]    # w at the wheel
-            if abs(V) < 1e-14 and abs(W) < 1e-14:
-                V = vec[2 * wn + 1, i]
-                W = vec[2 * self.n + 2 * wn + 1, i]
-            # whirl sense from the phase between the two planes at the wheel; the sign is fixed by
-            # the gyroscopic convention in G and verified by test_gyroscopic_forward_branch_stiffens
-            forward = (np.conj(V) * W).imag < 0
-            # strain-energy fraction in the bearing springs: ~1 for rigid-body modes, ~0 for shaft bending
-            q = vec[:, i]
-            e_tot = float(np.real(np.conj(q) @ self.K @ q))
-            e_spr = float(sum(kv * (abs(q[2 * nd]) ** 2 + abs(q[2 * self.n + 2 * nd]) ** 2)
-                              for nd, kv in self.springs.items()))
-            frac = e_spr / e_tot if e_tot > 0 else 0.0
-            out.append((float(f), bool(forward), frac))
-        out.sort()
+        # whirl sense from the phase between the two planes at the wheel; the sign is fixed by
+        # the gyroscopic convention in G and verified by test_gyroscopic_forward_branch_stiffens
+        V = vec[2 * wn, :].copy(); W = vec[2 * self.n + 2 * wn, :].copy()
+        tiny = (np.abs(V) < 1e-14) & (np.abs(W) < 1e-14)
+        V[tiny] = vec[2 * wn + 1, tiny]; W[tiny] = vec[2 * self.n + 2 * wn + 1, tiny]
+        forward = (np.conj(V) * W).imag < 0
+        # strain-energy fraction in the bearing springs: ~1 for rigid-body modes, ~0 for shaft bending (vectorised)
+        e_tot = np.real(np.einsum("ij,ij->j", np.conj(vec), self.K @ vec))
+        e_spr = np.zeros(vec.shape[1])
+        for nd, kv in self.springs.items():
+            e_spr += kv * (np.abs(vec[2 * nd, :]) ** 2 + np.abs(vec[2 * self.n + 2 * nd, :]) ** 2)
+        frac = np.where(e_tot > 0, e_spr / np.where(e_tot > 0, e_tot, 1.0), 0.0)
+        out = sorted((float(lam[k].imag), bool(forward[j]), float(frac[j])) for j, k in enumerate(keep))
         # de-duplicate conjugate pairs (already filtered by f > 0) and near-identical entries
         ded = []
         for f, fw, fr in out:
@@ -148,7 +141,7 @@ class RotorModel:
                     if prev[i][0] > 0 >= g[i][0]:
                         # bracket [om_prev, om]; bisection on the i-th sorted mode
                         lo, hi = om - omegas[1] + omegas[0], om
-                        for _ in range(25):
+                        for _ in range(14):   # 1e-4 relative on the critical speed is plenty
                             mid = 0.5 * (lo + hi)
                             mm = self.whirl(mid)
                             if i >= len(mm):

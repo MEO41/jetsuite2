@@ -179,6 +179,37 @@ def validate_turbine_model() -> list[dict]:
     return res
 
 
+def validate_rigs() -> list[dict]:
+    """Measured rigs: HECC (fully sourced) and CC3 (vane angle assumed) design points, surge and choke."""
+    from . import calibrate_surge
+    r = calibrate_surge.run(write=False)
+    c = r["cases"]
+    rows = [
+        dict(case="HECC 100 % speed design point (measured, NASA/CR-2014-218114)", quantity="PR_tt", model=c["hecc_design"]["PR_model"],
+             reference=c["hecc_design"]["PR_meas"], error=(c["hecc_design"]["PR_model"] - c["hecc_design"]["PR_meas"]) / c["hecc_design"]["PR_meas"],
+             tolerance=0.04, source="measured rig"),
+        dict(case="HECC design point", quantity="eta_tt", model=c["hecc_design"]["eta_model"], reference=c["hecc_design"]["eta_meas"],
+             error=c["hecc_design"]["eta_model"] - c["hecc_design"]["eta_meas"], tolerance=0.03, source="measured rig"),
+        dict(case="HECC surge flow / W_design (FITTED point)", quantity="surge flow", model=c["hecc_surge"]["W_pred"], reference=c["hecc_surge"]["W_meas"],
+             error=c["hecc_surge"]["err_flow"], tolerance=0.02, source="measured rig; STALL_K fitted here"),
+        dict(case="HECC choke flow / W_design", quantity="choke flow", model=c["hecc_surge"]["W_choke_pred"], reference=c["hecc_surge"]["W_choke_meas"],
+             error=c["hecc_surge"]["err_choke"], tolerance=0.06, source="measured rig"),
+        dict(case="CC3 vaned design point (NTRS 20140009577 Fig. 2; vane LE assumed)", quantity="PR_ts", model=c["cc3_vaned_design"]["PR_ts_model"],
+             reference=c["cc3_vaned_design"]["PR_ts_meas"], error=(c["cc3_vaned_design"]["PR_ts_model"] - c["cc3_vaned_design"]["PR_ts_meas"]) / c["cc3_vaned_design"]["PR_ts_meas"],
+             tolerance=0.08, source="measured rig (digitised)"),
+        dict(case="CC3 vaned surge flow / W_design (validation, not fitted)", quantity="surge flow", model=c["cc3_vaned_surge"]["W_pred"],
+             reference=c["cc3_vaned_surge"]["W_meas"], error=c["cc3_vaned_surge"]["err_flow"], tolerance=r["band"]["flow_fraction"] + 1e-9,
+             source="measured rig; inside the derived band by construction"),
+        dict(case="CC3 vaned choke flow / W_design", quantity="choke flow", model=c["cc3_vaned_surge"]["W_choke_pred"], reference=c["cc3_vaned_surge"]["W_choke_meas"],
+             error=c["cc3_vaned_surge"]["err_choke"], tolerance=0.06, source="measured rig (digitised)"),
+        dict(case="CC3 vaneless: no false stall flags down to 72 % flow", quantity="false flags", model=float(c["cc3_vaneless"]["false_stall_flags"]),
+             reference=0.0, error=float(c["cc3_vaneless"]["false_stall_flags"]), tolerance=0.0, source="measured rig (Fig. 8)"),
+    ]
+    rows.append(dict(case="derived surge-margin band (absolute SM points)", quantity="band", model=r["band"]["surge_margin_abs"], reference=0.0,
+                     error=0.0, tolerance=1.0, source=r["band"]["note"]))
+    return rows
+
+
 def validate_design_chain(design_factory) -> list[dict]:
     """Run the sizing chain on fleet datasheets that give thrust + rpm + PR + mass flow and compare."""
     res = []
@@ -211,6 +242,76 @@ def format_results(rows: list[dict]) -> str:
             out.append(f"  ?     {r['case'][:58]:<58} {r['quantity']:<26} {r['source']}")
             continue
         ok = abs(r["error"]) <= r["tolerance"]
-        out.append(f"  {'ok  ' if ok else 'OUT '}  {r['case'][:58]:<58} {r['quantity']:<26} model {r['model']:.4g}  ref {r['reference']:.4g}  "
-                   f"err {100*r['error']:+.1f} %  tol {100*r['tolerance']:.0f} %")
+        if r.get("absolute") or (str(r["quantity"]).endswith("_K") and r["tolerance"] > 1.0):
+            err_txt = f"err {r['error']:+.0f} K  tol {r['tolerance']:.0f} K"
+        else:
+            err_txt = f"err {100*r['error']:+.1f} %  tol {100*r['tolerance']:.0f} %"
+        out.append(f"  {'ok  ' if ok else 'OUT '}  {r['case'][:58]:<58} {r['quantity']:<26} model {r['model']:.4g}  ref {r['reference']:.4g}  {err_txt}")
     return "\n".join(out)
+
+
+# ----------------------------------------------------------------------------- paper correlation (ROADMAP 2)
+def load_paper_engines() -> dict:
+    return json.loads((DATA / "paper_engines.json").read_text(encoding="utf-8"))
+
+
+def validate_paper(design_factory, verbose=None) -> list[dict]:
+    """Published commercial micro-turbojets modelled as if they were our designs (thrust, OPR, rpm from the
+    datasheet; everything else the suite's own sizing), compared with the datasheet operating points through the
+    same steady matching `jet correlate` uses, plus the published dimensions and mass.  ``design_factory(entry)``
+    must return a Design with maps computed."""
+    from .. import correlation
+    db = load_paper_engines()
+    tol = db["tolerances"]
+    rows = []
+    for e in db["engines"]:
+        if verbose:
+            verbose(f"  paper: {e['name']}")
+        try:
+            d = design_factory(e)
+        except Exception as ex:  # noqa: BLE001
+            rows.append(dict(case=f"paper {e['name']}", quantity="design chain", model=None, reference=None, error=None, tolerance=0.0,
+                             source=f"FAILED {type(ex).__name__}: {ex}"))
+            continue
+        pts = [dict(p) for p in e["points"]]
+        cmp = correlation.compare(d, pts)
+        for p, row in zip(e["points"], cmp["rows"]):
+            tag = "" if row["converged"] else " (unconverged)"
+            for q in ("thrust_N", "Wf_kg_h", "EGT_K", "W_kg_s"):
+                if q in row:
+                    v = row[q]
+                    err = (v["model"] - v["test"]) if q == "EGT_K" else v["error"]
+                    rows.append(dict(case=f"paper {e['name']} @ {p['name']} {p['N_rpm']:.0f} rpm{tag}", quantity=q, model=v["model"],
+                                     reference=v["test"], error=err, tolerance=tol[q], source=e["source_url"]))
+        o = d.outputs()
+        # second definition of the max point: EGT-limited (how the ECUs actually top out) rather than rpm-limited --
+        # the max-power point with T04 capped at the value backed out from the published EGT, speed free up to 100 %
+        pmax = next((p for p in e["points"] if p.get("name") == "max"), None)
+        T04_solved = e["design"].get("T04_K_solved")
+        if pmax and T04_solved:
+            try:
+                from ..perf import matching
+                from ..stages.offdesign import engine_from_doc
+                E = engine_from_doc(d.doc)
+                amb = matching.Ambient.at(0.0, 0.0, 0.0)
+                mp = matching.max_power_point(E, amb, T04_max=float(T04_solved), N_max_frac=1.0)
+                if mp.get("converged", True) and mp.get("Fn"):
+                    src = e["source_url"] + f" (T04-limited max point at {T04_solved:.0f} K, N {mp['N'] / E.N_design:.3f})"
+                    rows.append(dict(case=f"paper {e['name']} @ max, EGT-limited", quantity="thrust_N", model=mp["Fn"], reference=pmax["thrust_N"],
+                                     error=(mp["Fn"] - pmax["thrust_N"]) / pmax["thrust_N"], tolerance=tol["thrust_N"], source=src))
+                    if pmax.get("Wf_kg_h"):
+                        rows.append(dict(case=f"paper {e['name']} @ max, EGT-limited", quantity="Wf_kg_h", model=mp["Wf"] * 3600, reference=pmax["Wf_kg_h"],
+                                         error=(mp["Wf"] * 3600 - pmax["Wf_kg_h"]) / pmax["Wf_kg_h"], tolerance=tol["Wf_kg_h"], source=src))
+                    if pmax.get("W_kg_s"):
+                        rows.append(dict(case=f"paper {e['name']} @ max, EGT-limited", quantity="W_kg_s", model=mp["W"], reference=pmax["W_kg_s"],
+                                         error=(mp["W"] - pmax["W_kg_s"]) / pmax["W_kg_s"], tolerance=tol["W_kg_s"], source=src))
+            except Exception as ex:  # noqa: BLE001
+                rows.append(dict(case=f"paper {e['name']} @ max, EGT-limited", quantity="max point", model=None, reference=None, error=None,
+                                 tolerance=0.0, source=f"FAILED {type(ex).__name__}: {ex}"))
+        pub = e["published"]
+        for q, model in (("diameter_mm", o["geometry"]["envelope_OD_mm"]), ("length_mm", o["geometry"]["length_mm"]),
+                         ("mass_kg", o["geometry"]["mass_total_kg"])):
+            if pub.get(q):
+                rows.append(dict(case=f"paper {e['name']}", quantity=q, model=model, reference=pub[q], error=(model - pub[q]) / pub[q],
+                                 tolerance=tol[q], source=e["source_url"] + (f" ({pub.get('mass_note')})" if q == "mass_kg" and pub.get("mass_note") else "")))
+    return rows

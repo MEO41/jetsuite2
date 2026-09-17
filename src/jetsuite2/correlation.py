@@ -43,6 +43,35 @@ def read_test_csv(path: str | Path) -> list[dict]:
     return rows
 
 
+class _EtaScaledCompressorMap:
+    """Map wrapper: efficiency scaled by a constant factor (calibration lever), everything else passed through."""
+
+    def __init__(self, cmap, scale: float):
+        self._m, self.s = cmap, float(scale)
+
+    def point(self, N_frac, beta, igv=0.0):
+        w, pr, eta = self._m.point(N_frac, beta, igv)
+        return w, pr, min(max(eta * self.s, 0.2), 0.95)
+
+    def surge_margin(self, N_frac, W_corr, PR, igv=0.0):
+        return self._m.surge_margin(N_frac, W_corr, PR, igv)
+
+    def __getattr__(self, k):
+        return getattr(self._m, k)
+
+
+class _EtaScaledTurbineMap:
+    def __init__(self, tmap, scale: float):
+        self._m, self.s = tmap, float(scale)
+
+    def point(self, N_frac, PR_ts):
+        w, eta, prtt = self._m.point(N_frac, PR_ts)
+        return w, min(max(eta * self.s, 0.2), 0.95), prtt
+
+    def __getattr__(self, k):
+        return getattr(self._m, k)
+
+
 def _predict(design, doc_inputs: dict, points: list[dict]) -> list[dict]:
     """Model prediction at each test point's speed and ambient (steady matching on the maps)."""
     import copy
@@ -51,8 +80,24 @@ def _predict(design, doc_inputs: dict, points: list[dict]) -> list[dict]:
         st, key = k.split(".", 1)
         doc["inputs"][st][key] = v
     E = engine_from_doc(doc)
-    # the cycle coefficients enter the matching model through EngineModel.from_design: rebuild with the tuned values
+    # test points below the lowest mapped speed line (idle on most datasheets is 30-35 % speed) use the same
+    # similarity extension as the transient model, labelled below as `below_map`
+    from .perf.transient import LowSpeedMap
+    N_min_map = float(E.cmap.N.min())
+    cmap = LowSpeedMap(E.cmap)
+    tmap = E.tmap
+    # the tuned component efficiencies act on the maps the matching runs on (the cycle's eta_c / eta_t are sizing
+    # assumptions and would otherwise not reach the off-design model): scale the map efficiencies by
+    # eta_tuned / eta_design so that the design point moves with the coefficient
     ci = doc["inputs"]["cycle"]
+    base = design.doc["inputs"]["cycle"]
+    mp = design.outputs()["maps"]
+    if "cycle.eta_c" in doc_inputs and mp.get("design_point", {}).get("eta"):
+        cmap = _EtaScaledCompressorMap(cmap, float(ci["eta_c"]) / float(base["eta_c"]))
+    if "cycle.eta_t" in doc_inputs:
+        tmap = _EtaScaledTurbineMap(tmap, float(ci["eta_t"]) / float(base["eta_t"]))
+    E = matching.EngineModel(**{**E.__dict__, "cmap": cmap, "tmap": tmap})
+    # the cycle coefficients enter the matching model through EngineModel.from_design: rebuild with the tuned values
     E.eta_b, E.dp_b, E.nozzle_Cv = float(ci["eta_b"]), float(ci["dp_burner"]), float(ci["nozzle_Cv"])
     E.A8 = design.outputs()["cycle"]["A8_geo_m2"] * float(ci["nozzle_Cd"])
     out = []
@@ -63,7 +108,8 @@ def _predict(design, doc_inputs: dict, points: list[dict]) -> list[dict]:
         if r["converged"]:
             x0 = r["x"]
         out.append(dict(N_rpm=p["N_rpm"], thrust_N=r["Fn"], Wf_kg_h=r["Wf"] * 3600, EGT_K=r["EGT"], P3_Pa=r["Pt3"], T3_K=r["Tt3"],
-                        W_kg_s=r["W"], T04_K=r["T04"], SM=r["SM"], converged=r["converged"]))
+                        W_kg_s=r["W"], T04_K=r["T04"], SM=r["SM"], converged=r["converged"],
+                        below_map=bool(r.get("Nc_frac", 1.0) < N_min_map - 1e-9)))
     return out
 
 

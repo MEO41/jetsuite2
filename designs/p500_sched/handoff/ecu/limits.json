@@ -1,0 +1,49 @@
+{
+ "idle_N_frac": 0.5,
+ "N_max_frac": 1.05,
+ "overspeed_trip_frac": 1.1,
+ "overspeed_trip_delay_s": 0.1,
+ "T04_limit_K": 1200.0,
+ "EGT_limit_K": 1046.6483275556325,
+ "EGT_sensor_basis": "Tt5 at the design point + 0.87 x (T04 limit - T04 design)",
+ "fuel_lag_s": 0.3,
+ "governor_gain": 8.0,
+ "start": {
+  "light_off_N": 0.1,
+  "starter_cutoff_N": 0.35,
+  "ramp_rate": 0.25,
+  "starter_torque_Nm": 0.5
+ },
+ "design_rpm": 72500.0,
+ "rpm_mcs": 76125.0,
+ "bearing_T_abort_K": 389.47539323366186,
+ "bearing_T_abort_basis": "predicted bearing T + margin",
+ "vibration_abort_um": 40.0,
+ "surge_detection": "P3 falls > 5 % in 20 ms while N rises, or Kulite rms > 3x baseline: open bleed, cut to the decel line",
+ "flameout_detection": "EGT drop > 100 K/s with fuel on: fuel off, auto-relight attempt above the windmill speed once",
+ "igv": {
+  "enabled": true,
+  "fail_position": "open",
+  "fail_deg": 0.0,
+  "rate_required_deg_s": 9.374999999999996
+ },
+ "bleed": {
+  "enabled": true,
+  "port": {
+   "location": "diffuser_exit",
+   "x_m": 0.048839902541957164,
+   "r_m": 0.09166385990965861,
+   "d_m": 0.017426841160775895,
+   "W_max_kg_s": 0.0715563997596577
+  }
+ },
+ "nozzle": {
+  "variable": true
+ },
+ "sensor_loss": {
+  "N": "abort (no safe fallback)",
+  "P3": "fuel from the N-only schedule (steady P3 at the ambient), accel line x0.8",
+  "T04_or_EGT": "accel line x0.8, T04 limit -50 K, no hot-day corrections",
+  "IGV_position": "vanes to the failure position, bleed interlock open"
+ }
+}

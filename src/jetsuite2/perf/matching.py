@@ -19,7 +19,8 @@ import numpy as np
 from scipy.optimize import fsolve, brentq
 
 from .. import gas_fast as gas          # tabulated thermo: same polynomials, ~30x faster in the matching loops
-from .maps import CompressorMap, TurbineMap, corr_flow, phys_flow, T_REF, P_REF
+from .maps import CompressorMap, CompressorMapFamily, TurbineMap, corr_flow, phys_flow, T_REF, P_REF
+from .control import Schedules
 from ..stages.common import isa
 
 
@@ -36,6 +37,7 @@ class EngineModel:
     intake_rec: float; nozzle_Cv: float; LHV: float
     W_design: float; T04_max: float
     I_rotor: float = 1e-3    # kg m2 (transient only)
+    sched: Schedules = None  # controller schedules (bleed / A8 / IGV vs corrected speed)
 
     @classmethod
     def from_design(cls, design) -> "EngineModel":
@@ -45,14 +47,16 @@ class EngineModel:
         ci = design.doc["inputs"]["cycle"]
         ro = o.get("rotor", {})
         I = (ro.get("Ip_impeller", 0) + ro.get("Ip_turbine", 0)) * 1.05 + 0.2e-3 * (ro.get("Ip_impeller", 0) > 0)
-        return cls(cmap=CompressorMap(mp["compressor_map"]), tmap=TurbineMap(mp["turbine_map"]),
+        fam = CompressorMapFamily(mp.get("compressor_maps_igv") or [mp["compressor_map"]])
+        return cls(cmap=fam, tmap=TurbineMap(mp["turbine_map"]),
                    N_design=o["speed"]["rpm"], T01_design=cy["Tt2_K"], P01_design=cy["Pt2_Pa"],
                    T04_design=cy["T04_K"], P04_design=cy["Pt4_Pa"], A8=cy["A8_eff_m2"],
                    eta_b=float(ci.get("eta_b", 0.97)), dp_b=float(ci.get("dp_burner", 0.05)), dp_jp=float(ci.get("dp_jetpipe", 0.02)),
                    eta_mech=float(ci.get("eta_mech", 0.99)), bleed=float(ci.get("bleed_frac", 0.01)),
                    P_off=float(ci.get("power_offtake_W", 100.0)), intake_rec=float(ci.get("intake_recovery", 0.98)),
                    nozzle_Cv=float(ci.get("nozzle_Cv", 0.98)), LHV=float(ci.get("fuel_LHV_J_per_kg", gas.LHV_KEROSENE)),
-                   W_design=cy["W_kg_s"], T04_max=cy["T04_K"], I_rotor=max(I, 1e-5))
+                   W_design=cy["W_kg_s"], T04_max=cy["T04_K"], I_rotor=max(I, 1e-5),
+                   sched=Schedules(o.get("control")))
 
 
 @dataclass
@@ -93,12 +97,14 @@ def _nozzle(W8, T08, P08, P0, A8, Cv, far):
     return P8, Cv * V8, T8s, False, Wcap
 
 
-def evaluate(E: EngineModel, amb: Ambient, N: float, beta: float, PR_t: float, T04: float) -> dict:
+def evaluate(E: EngineModel, amb: Ambient, N: float, beta: float, PR_t: float, T04: float, want_sm: bool = True) -> dict:
     """Cycle at given unknowns; returns the residual vector and all quantities."""
     Tt2, Pt2, V0 = amb.ram(E.intake_rec)
     theta, delta = Tt2 / T_REF, Pt2 / P_REF
     Nc_frac = (N / math.sqrt(theta)) / E.cmap.Nc_design
-    Wc, PR_c, eta_c = E.cmap.point(Nc_frac, beta)
+    sch = E.sched if E.sched is not None else Schedules(None)
+    igv = sch.igv(Nc_frac)
+    Wc, PR_c, eta_c = E.cmap.point(Nc_frac, beta, igv)
     PR_c = max(PR_c, 1.0005)
     W = phys_flow(Wc, Tt2, Pt2)
     eta_c = min(max(eta_c, 0.2), 0.95)
@@ -106,10 +112,15 @@ def evaluate(E: EngineModel, amb: Ambient, N: float, beta: float, PR_t: float, T
     T3s = gas.isentropic_T(Tt2, PR_c)
     dh_c = (gas.h(T3s) - gas.h(Tt2)) / eta_c
     Tt3 = gas.T_from_h(gas.h(Tt2) + dh_c)
-    W3 = W * (1 - E.bleed)
-    Pt4 = Pt3 * (1 - E.dp_b)
+    b_handling = sch.bleed(Nc_frac)                       # handling bleed dumped overboard at the compressor exit
+    A8 = E.A8 * sch.a8(Nc_frac)                           # variable nozzle
+    W3 = W * (1 - E.bleed - b_handling)
+    # duct pressure losses scale with the dynamic head, i.e. with (corrected flow)^2 -- at start speeds the
+    # burner and jet-pipe losses are a small fraction of their design values, which is what lets the turbine expand
+    q_ratio = min((Wc / corr_flow(E.W_design, E.T01_design, E.P01_design)) ** 2, 1.5)
+    Pt4 = Pt3 * (1 - E.dp_b * q_ratio)
     T04 = min(max(T04, Tt3 + 30.0), 2200.0)     # physically admissible turbine inlet temperature
-    PR_t = min(max(PR_t, 1.05), 6.0)
+    PR_t = min(max(PR_t, 1.001), 6.0)                 # floor just above 1: at start speeds the turbine barely expands
     far = gas.far_for_T04(Tt3, T04, E.eta_b, E.LHV)
     W4 = W3 * (1 + far)
     Wf = W3 * far
@@ -126,22 +137,23 @@ def evaluate(E: EngineModel, amb: Ambient, N: float, beta: float, PR_t: float, T
     Tt5 = gas.T_from_h(gas.h(T04, far) - dh_t, far)
     P_turb = W4 * dh_t
     P_comp = W * dh_c / E.eta_mech + E.P_off * min(N / E.N_design, 1.2)   # accessory load grows with speed
-    Pt8 = Pt5 * (1 - E.dp_jp)
-    P8, V8, T8, choked, Wcap = _nozzle(W4, Tt5, Pt8, amb.P0, E.A8, E.nozzle_Cv, far)
+    Pt8 = Pt5 * (1 - E.dp_jp * q_ratio)
+    P8, V8, T8, choked, Wcap = _nozzle(W4, Tt5, Pt8, amb.P0, A8, E.nozzle_Cv, far)
     A8_needed = W4 / (P8 / (gas.R_AIR * T8) * max(V8 / E.nozzle_Cv, 1.0))
-    Fg = W4 * V8 + (P8 - amb.P0) * E.A8
+    Fg = W4 * V8 + (P8 - amb.P0) * A8
     Fn = Fg - W * V0
     res = np.array([(P_turb - P_comp) / max(P_comp, 1.0),          # work balance
                     (W4_map - W4) / max(W4, 1e-6),                  # turbine flow compatibility
-                    (A8_needed - E.A8) / E.A8])                     # nozzle continuity
+                    (Wcap - W4) / max(W4, 1e-6)])                   # nozzle continuity (capacity form: well scaled near PR 1)
     return dict(res=res, W=W, W_corr=Wc, Nc_frac=Nc_frac, PR_c=PR_c, eta_c=eta_c, Tt2=Tt2, Pt2=Pt2, Tt3=Tt3, Pt3=Pt3,
                 T04=T04, Pt4=Pt4, far=far, Wf=Wf, W4=W4, PR_t=PR_t, PR_tt=PR_tt, eta_t=eta_t, Tt5=Tt5, Pt5=Pt5,
                 P_turb=P_turb, P_comp=P_comp, Fn=Fn, Fg=Fg, V8=V8, choked=choked, N=N, beta=beta, TSFC=Wf / max(Fn, 1e-6),
-                SM=E.cmap.surge_margin(Nc_frac, Wc, PR_c), V0=V0, EGT=Tt5, dh_c=dh_c)
+                SM=(E.cmap.surge_margin(Nc_frac, Wc, PR_c, igv) if want_sm else float('nan')),
+                V0=V0, EGT=Tt5, dh_c=dh_c, bleed_handling=b_handling, A8=A8, igv_deg=igv)
 
 
 def solve_point(E: EngineModel, amb: Ambient, N: float, T04: float | None = None, Wf: float | None = None,
-                x0=None) -> dict:
+                x0=None, scan: bool = False) -> dict:
     """Steady state at spool speed N with T04 given, or Wf given (then T04 is solved)."""
     T04_fixed = T04
     if x0 is None:
@@ -150,17 +162,35 @@ def solve_point(E: EngineModel, amb: Ambient, N: float, T04: float | None = None
         # with T04 fixed the work balance is dropped (quasi-steady point for the transient model):
         # two unknowns (beta, ln PR_t), two residuals (turbine flow, nozzle continuity)
         def wrap2(x):
-            r = evaluate(E, amb, N, x[0], math.exp(min(max(x[1], -1.0), 3.0)), T04_fixed)
+            r = evaluate(E, amb, N, x[0], math.exp(min(max(x[1], -1.0), 3.0)), T04_fixed, want_sm=False)
             return [r["res"][1], r["res"][2]]
         x, info, ier, msg = fsolve(wrap2, x0[:2], full_output=True, xtol=1e-9, maxfev=300)
         x[1] = min(max(x[1], -1.0), 3.0)
+        ok = ier == 1 and float(np.max(np.abs(wrap2(x)))) < 1e-5
+        if not ok and scan:
+            # warm start failed (typically the start region, where PR_t is 1.0x and far from any guess):
+            # coarse scan of the 2-D residual for a start point, then one more Newton
+            best = None
+            for beta in np.linspace(-0.2, 0.9, 8):
+                for PRt in (1.005, 1.02, 1.05, 1.1, 1.2, 1.35, 1.5, 1.8, 2.2, 2.8):
+                    try:
+                        n = float(np.max(np.abs(wrap2([beta, math.log(PRt)]))))
+                    except Exception:  # noqa: BLE001
+                        continue
+                    if np.isfinite(n) and (best is None or n < best[0]):
+                        best = (n, beta, math.log(PRt))
+            if best is not None:
+                x2, info, ier, msg = fsolve(wrap2, [best[1], best[2]], full_output=True, xtol=1e-9, maxfev=300)
+                x2[1] = min(max(x2[1], -1.0), 3.0)
+                if ier == 1 and float(np.max(np.abs(wrap2(x2)))) < 1e-5:
+                    x, ok = x2, True
         r = evaluate(E, amb, N, x[0], math.exp(x[1]), T04_fixed)
-        r["converged"] = ier == 1 and float(np.max(np.abs(wrap2(x)))) < 1e-5
+        r["converged"] = bool(ok)
         r["x"] = [float(x[0]), float(x[1]), float(T04_fixed)]
         return r
     def wrap(x):
         beta, lnPR, t4 = x
-        r = evaluate(E, amb, N, beta, math.exp(min(max(lnPR, -1.0), 3.0)), t4)
+        r = evaluate(E, amb, N, beta, math.exp(min(max(lnPR, -1.0), 3.0)), t4, want_sm=False)
         return list(r["res"]) if Wf is None else [r["res"][0], r["res"][1], (r["Wf"] - Wf) / max(Wf, 1e-6)]
     x, info, ier, msg = fsolve(wrap, x0, full_output=True, xtol=1e-9, maxfev=400)
     beta, lnPR, t4 = x
@@ -174,7 +204,7 @@ def solve_steady(E: EngineModel, amb: Ambient, N: float, x0=None) -> dict:
     """Steady state at speed N: T04 is the unknown (fuel is the control)."""
     def wrap(x):
         beta, lnPR, t4 = x
-        r = evaluate(E, amb, N, beta, math.exp(min(max(lnPR, -1.0), 3.0)), t4)
+        r = evaluate(E, amb, N, beta, math.exp(min(max(lnPR, -1.0), 3.0)), t4, want_sm=False)
         return list(r["res"])
     if x0 is None:
         x0 = [0.5, math.log(2.0), 900.0]

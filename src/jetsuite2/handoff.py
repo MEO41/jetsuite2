@@ -32,7 +32,8 @@ from .state.store import get_path
 
 INGEST_FIELDS = {
     "compressor": {"eta_tt_est": "stage total-total isentropic efficiency at the design point",
-                   "PR_cfd": "stage total pressure ratio at the design point (informational)",
+                   "eta_impeller_cfd": "impeller-only total-total isentropic efficiency at the design point (passage CFD, `jet cfd`)",
+                   "PR_cfd": "impeller (or stage, see source) total pressure ratio at the design point (informational)",
                    "choke_margin": "flow to choke / design flow - 1",
                    "alpha3_L2_deg": "vaneless-space exit flow angle [deg from radial]"},
     "turbine": {"eta_tt_est": "stage total-total efficiency", "M3": "rotor exit absolute Mach", "alpha3_deg": "exit swirl [deg]"},
@@ -42,6 +43,7 @@ INGEST_FIELDS = {
     "combustor1d": {"pattern_factor": "measured/CFD pattern factor", "liner_wall_T_K": "peak liner wall temperature [K]",
                     "eta_b_model": "combustion efficiency"},
     "rotor": {"bending_critical_rpm": "first forward bending critical speed [rpm] (FE rotordynamics)"},
+    "life": {"sigma_bore_total_Pa": "peak von Mises in the turbine disc at MCS with the start thermal gradient superposed [Pa] (FE)"},
 }
 
 

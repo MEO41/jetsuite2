@@ -15,6 +15,7 @@ import numpy as np
 
 from ..perf import closs, tloss, maps as pmaps
 from ..rules import check
+from .. import uncertainty as unc
 from .common import inp, out
 
 TIER = "L2"
@@ -37,7 +38,7 @@ READS = ["inputs.maps.*", "outputs.compressor.*", "outputs.turbine.*", "outputs.
          "outputs.cycle.Tt2_K", "outputs.cycle.Pt2_Pa", "outputs.cycle.W_kg_s", "outputs.cycle.T04_K",
          "outputs.cycle.Pt4_Pa", "outputs.cycle.far", "outputs.cycle.W4_kg_s", "outputs.cycle.Pt5_Pa",
          "outputs.cycle.turbine_PR_tt", "outputs.cycle.eta_c_assumed", "outputs.cycle.eta_t_assumed",
-         "outputs.cycle.OPR"]
+         "outputs.cycle.OPR", "outputs.control.igv_settings", "outputs.control.igv_enabled"]
 
 
 def run(doc: dict) -> dict:
@@ -50,7 +51,10 @@ def run(doc: dict) -> dict:
     gc = closs.CompressorGeometry.from_outputs(c)
     gc.slip_model = str(m("slip_model"))
     gt = tloss.TurbineGeometry.from_outputs(t, far)
-    cmap = pmaps.compressor_map(gc, rpm, T01, P01, N_fracs=fr, n_pts=int(m("points_per_line")))
+    ctrl = doc["outputs"].get("control", {})
+    igv_settings = [float(x) for x in ctrl.get("igv_settings", [0.0])] if ctrl.get("igv_enabled") else [0.0]
+    cmaps = [pmaps.compressor_map(gc, rpm, T01, P01, N_fracs=fr, n_pts=int(m("points_per_line")), igv_deg=a) for a in igv_settings]
+    cmap = cmaps[0]
     tmap = pmaps.turbine_map(gt, rpm, T04, P04, N_fracs=fr)
     if not cmap["lines"] or not tmap["lines"]:
         raise RuntimeError("map generation produced no valid speed lines")
@@ -72,9 +76,10 @@ def run(doc: dict) -> dict:
     if bool(m("plots")) and ddir:
         plots = _plot(cmap, tmap, Path(ddir) / "analysis", dp, Wc)
     rules = [
-        check("MAP-1", "design-point surge margin (loss-model map, SAE definition)", sm, 0.15, "min",
-              f"stall indicators in perf.closs; uncertainty +/-{100*closs.SURGE_UNCERTAINTY:.0f} % of the margin",
-              note="more backsweep, larger vaneless gap, fewer / lower-solidity diffuser vanes, or a lower running line"),
+        unc.annotate_rule(check("MAP-1", "design-point surge margin (loss-model map, SAE definition)", sm, 0.15, "min",
+              f"rig-calibrated stall model (HECC/CC3); band +/-{unc.surge_band()['total']:.3f} = {unc.format_terms(unc.surge_band())}",
+              warn_margin=unc.surge_band()["total"] / 0.15,
+              note="more backsweep, larger vaneless gap, fewer / lower-solidity diffuser vanes, or a lower running line"), unc.surge_band()),
         check("MAP-2", "design-point choke margin (flow to choke / design flow - 1)", wch / Wc - 1.0 if Wc else None, 0.08, "min",
               "inducer / diffuser throat choke on the design speed line", note="open the inducer or diffuser throat"),
         check("MAP-3", "L2 loss-model compressor efficiency vs L1 estimate |diff|",
@@ -90,7 +95,7 @@ def run(doc: dict) -> dict:
               0.06, "max", "the sized geometry should deliver the cycle pressure ratio within the loss-model accuracy",
               hard=False, note=f"loss model PR {dp.PR_tt if dp.ok else float('nan'):.3f} vs cycle OPR {opr:.3f}"),
     ]
-    return dict(compressor_map=cmap, turbine_map=tmap, design_point=dict(
+    return dict(compressor_map=cmap, compressor_maps_igv=cmaps, igv_settings=igv_settings, turbine_map=tmap, design_point=dict(
         ok=dp.ok, PR=dp.PR_tt, eta=dp.eta_tt, incidence=dp.incidence, incidence_vd=dp.incidence_vd, M2=dp.M2,
         alpha3=dp.alpha3, D_f=dp.D_f, de_haller=dp.de_haller, stall=dp.stall, losses_J_kg=dp.losses, W_corr=Wc,
         surge_margin=sm, surge_W_corr=w0, surge_PR=pr0, choke_W_corr=wch, surge_reason=cmap["lines"][-1]["surge_reason"]),

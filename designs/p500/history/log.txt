@@ -13,3 +13,31 @@ v0012  2026-09-16T16:53:14  analyze maps, offdesign, assess, transient, combusto
 v0013  2026-09-16T16:58:14  analyze transient, combustor1d, life, rotordyn, manufacturing, testbench
 v0014  2026-09-16T17:00:16  analyze transient, combustor1d, life, manufacturing
 v0015  2026-09-16T17:00:36  analyze combustor1d
+v0016  2026-09-16T19:46:20  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, control, geometry
+v0017  2026-09-16T19:55:33  analyze maps, offdesign, assess, transient, combustor1d, envelope, life, rotordyn, manufacturing, testbench
+v0018  2026-09-16T19:59:23  analyze transient
+v0019  2026-09-16T20:09:24  analyze testbench
+v0020  2026-09-16T20:21:45  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, control, geometry
+v0021  2026-09-16T20:23:56  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, control, geometry
+v0022  2026-09-16T21:22:30  analyze maps, offdesign, assess, transient, combustor1d, envelope, life, rotordyn, manufacturing, testbench
+v0023  2026-09-16T21:25:13  ingest mechanical: turbine.sigma_peak_Pa, turbine.sigma_avg_Pa [L3] CalculiX 2.21 axisymmetric CAX4 disc, 2379 elements, 2026-09-16T18:25:13+00:00
+v0024  2026-09-16T21:25:13  ingest life: sigma_bore_total_Pa [L3] CalculiX 2.21 axisymmetric CAX4 disc, 2379 elements, 2026-09-16T18:25:13+00:00; peak taken >= 1 mm from the unfilleted re-entrant corners (singular there)
+v0025  2026-09-16T21:25:13  run mechanical
+v0026  2026-09-16T21:25:13  analyze life
+v0027  2026-09-16T21:30:19  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, control, geometry
+v0028  2026-09-16T21:30:22  analyze offdesign
+v0029  2026-09-16T21:37:16  analyze transient, envelope
+v0030  2026-09-16T21:40:34  analyze maps
+v0031  2026-09-16T21:45:21  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, control, geometry
+v0032  2026-09-17T00:32:05  ingest mechanical: impeller.sigma_peak_Pa [L3] CalculiX 2.21 axisymmetric CAX4 impeller hub, 7921 elements, blades as smeared traction, 2026-09-16T21:32:05+00:00; peak >= 1 mm from re-entrant corners
+v0033  2026-09-17T00:32:07  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, control, geometry
+v0034  2026-09-17T00:32:39  analyze life
+v0035  2026-09-17T00:40:22  analyze thermal
+v0036  2026-09-17T00:43:30  analyze life, testbench
+v0037  2026-09-17T00:49:16  analyze offdesign, transient, combustor1d, rotordyn, manufacturing
+v0038  2026-09-17T09:03:46  analyze envelope
+v0039  2026-09-17T09:09:42  analyze transient
+v0040  2026-09-17T09:16:39  analyze maps, throughflow, thermal, rotordyn, manufacturing, offdesign, envelope, life, assess, transient, combustor1d, testbench
+v0041  2026-09-17T09:21:21  analyze maps, throughflow, thermal, rotordyn, manufacturing, offdesign, envelope, life, assess, transient, combustor1d, testbench
+v0042  2026-09-17T09:24:44  analyze maps, throughflow, thermal, rotordyn, manufacturing, offdesign, envelope, life, assess, combustor1d, transient, testbench
+v0043  2026-09-17T09:28:02  analyze maps, throughflow, thermal, rotordyn, manufacturing, offdesign, envelope, life, assess, combustor1d, transient, testbench

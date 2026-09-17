@@ -43,7 +43,7 @@ DEFAULTS = {
 }
 
 READS = ["inputs.combustor1d.*", "outputs.combustor.*", "outputs.cycle.*", "outputs.compressor.M_combustor_inlet",
-         "outputs.offdesign.idle", "outputs.offdesign.running_line", "outputs.transient.scenarios"]
+         "outputs.offdesign.idle", "outputs.offdesign.running_line"]
 
 def _tau_chem(T: float, P: float, phi: float) -> float:
     """Characteristic chemical time [s]: global-kinetics fit for kerosene/air of the Lefebvre form

@@ -1,0 +1,8 @@
+  H-mesh: 78223 nodes, 71632 hexes; first cell blade 0.020 mm, hub 0.251 mm; markers {'INLET': 968, 'OUTLET': 968, 'HUB': 3256, 'SHROUD': 3256, 'BLADE': 3300, 'PER_A': 572, 'PER_B': 572}
+  throttle block 0: p_out 314379 Pa -> choke, W_in 0.03941228161 W_out 0.2227846657 (target 0.1084), PR_tt 5.652642649348632, eta_tt 1.054531748700331, rms -5.222546534
+    continuing at the same p_out (block 2 of 3 at this pressure)
+  throttle block 1: p_out 314379 Pa -> collapse, W_in 0.09592232732 W_out 0.06329138635 (target 0.1084), PR_tt 5.1762606462249146, eta_tt 1.2406005782148537, rms -5.485999691
+    continuing at the same p_out (block 3 of 3 at this pressure)
+  throttle block 2: p_out 314379 Pa -> healthy, W_in 0.115140198 W_out 0.09528647254 (target 0.1084), PR_tt 5.714962273753615, eta_tt 1.1635132916750186, rms -5.525516271
+  throttle block 3: p_out 312267 Pa -> healthy, W_in 0.1122144226 W_out 0.09725994133 (target 0.1084), PR_tt 5.738949600278029, eta_tt 1.1131203750644985, rms -5.550099828
+  throttle block 4: p_out 309841 Pa -> failed, W_in None W_out None (target 0.1084), PR_tt None, eta_tt None, rms None

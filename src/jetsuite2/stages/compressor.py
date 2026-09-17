@@ -52,6 +52,7 @@ DEFAULTS = {
     "n_vanes": "auto",
     "diffuser_exit_angle_deg": 35.0,    # vane trailing-edge angle from radial
     "diffuser_throat_mach": 0.70,   # design Mach at the vaned-diffuser throat (sizes the throat; 0.65-0.85 practice)
+    "diffuser_incidence_margin_deg": 1.5,   # vane LE set this far below the calibrated stall incidence (~10 % flow range)
     "diffuser_Cp": 0.62,            # static pressure recovery of the vaned channel
     "n_deswirl": "auto",
     "combustor_inlet_mach": 0.12,
@@ -76,6 +77,7 @@ DEFAULTS = {
         "diffuser_radius_ratio": "diffuser outer radius / r2",
         "n_vanes": "'auto' or diffuser vane count",
         "diffuser_exit_angle_deg": "vane trailing-edge angle from radial",
+        "diffuser_incidence_margin_deg": "design vane incidence below the Mach-dependent stall incidence (perf.closs, rig-calibrated)",
         "diffuser_Cp": "vaned channel static pressure recovery coefficient",
         "n_deswirl": "'auto' or number of axial deswirl vanes",
         "combustor_inlet_mach": "Mach at diffuser/deswirl exit into the combustor annulus",
@@ -287,6 +289,7 @@ def run(doc: dict) -> dict:
     T3s_ = T02 - C3 ** 2 / (2 * cp2)
     M3 = C3 / math.sqrt(g2 * gas.R_AIR * T3s_)
     n_vanes_in = c("n_vanes")
+    i_design = None
     if vaned:
         r4 = float(c("diffuser_radius_ratio")) * r2
         if is_auto(n_vanes_in):
@@ -310,7 +313,11 @@ def run(doc: dict) -> dict:
         _g.r3, _g.r4, _g.b3 = r3, r4, b4
         _dp = _closs.evaluate(_g, W, omega, Tt2, Pt2)
         alpha3_L2 = _dp.alpha3 if _dp.ok else alpha3
-        vane_le_angle = alpha3_L2 - 2.0
+        M3_L2 = _dp.M3 if _dp.ok else M3
+        # design incidence: the calibrated stall incidence at this inlet Mach minus the flow-range
+        # allowance (d alpha3 / d lnW ~ 14 deg per unit -> 1.5 deg for ~10 % flow margin)
+        i_design = _closs.diffuser_stall_incidence(M3_L2) - float(c("diffuser_incidence_margin_deg"))
+        vane_le_angle = alpha3_L2 - i_design
         # throat sized for the design throat Mach (total state ~ impeller exit total minus the vaneless loss)
         M_th = float(c("diffuser_throat_mach"))
         A_th_vd = W / gas.mass_flow_function(T02, P02 * 0.985, M_th, 1.0)
@@ -380,6 +387,15 @@ def run(doc: dict) -> dict:
               "impeller/diffuser split: 3-10 % typical", hard=False,
               note="impeller_eta_offset too large or eta_c assumption too low"),
     ]
+    # ingested impeller CFD (L3): the mean line assumes eta_imp = eta_c + impeller_eta_offset; the CFD value tests that
+    # assumption.  The verdict is on the ingested number; the graph re-applies the override to the outputs afterwards.
+    ov = doc.get("overrides", {}).get("compressor", {}) or {}
+    if ov.get("eta_impeller_cfd", {}).get("value") is not None:
+        eta_cfd = float(ov["eta_impeller_cfd"]["value"])
+        rules.append(check("COMP-16", "impeller CFD vs assumed impeller efficiency |diff|", abs(eta_cfd - eta_imp), 0.03, "max",
+                           f"{ov['eta_impeller_cfd'].get('tier', 'L3')} passage CFD ({ov['eta_impeller_cfd'].get('source', '')[:60]})",
+                           note=f"CFD {eta_cfd:.3f} vs assumed {eta_imp:.3f}: adjust compressor.impeller_eta_offset "
+                                f"to {eta_cfd - eta_c_assumed:+.3f} (a modelled change) or the cycle eta_c, then `jet converge`"))
     return dict(
         material=mat, rpm=rpm, omega_rad_s=omega,
         # inlet
@@ -406,7 +422,7 @@ def run(doc: dict) -> dict:
         diffuser_type="vaned" if vaned else "vaneless", r3_m=r3, r4_m=r4, b4_m=b4, n_vanes=n_vanes,
         alpha3_deg=alpha3, M3=M3, C3_m_s=C3, vane_le_angle_deg=vane_le_angle, vane_te_angle_deg=alpha4,
         vane_throat_width_m=throat_w, vane_throat_geometric_m=throat_geometric,
-        alpha3_L2_deg=(alpha3_L2 if vaned else None),
+        alpha3_L2_deg=(alpha3_L2 if vaned else None), diffuser_design_incidence_deg=(i_design if vaned else None),
         diffuser_throat_mach=float(c("diffuser_throat_mach")), M4=M4, C4_m_s=C4, P4_Pa=P4, alpha4_deg=alpha4,
         n_deswirl=n_deswirl, r_deswirl_inner_m=r_deswirl_in, deswirl_length_m=L_deswirl, A_combustor_inlet_m2=A_comb_in,
         M_combustor_inlet=M_comb, casing_outer_radius_m=r4,

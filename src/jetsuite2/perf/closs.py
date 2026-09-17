@@ -39,7 +39,39 @@ from scipy.optimize import brentq
 
 from .. import gas
 
-SURGE_UNCERTAINTY = 0.30   # relative uncertainty on the predicted surge-margin (unvalidated criterion, see docs)
+# --- stall model constants (calibrated on the NASA HECC and CC3 rigs, see validation/calibrate_surge.py) ---
+# Vaned diffuser: the tolerable vane leading-edge incidence falls with the diffuser inlet Mach number
+# (Japikse: at high inlet Mach the passage stalls from throat blockage growth while the LE is still at
+# negative incidence).   i_stall = I0 - K (M3 - 0.5)   [deg, positive = flow more tangential than the vane]
+STALL_I0 = 6.0
+STALL_K = 22.19            # fitted on the HECC measured surge point (validation/calibrate_surge.py, 2026-09-16)
+# Vaneless space (Senoo & Kinoshita 1977): critical inlet flow angle from radial grows more tangential for
+# narrow passages; Mach makes it slightly less tolerant.   alpha_c = A0 - A1 (b3/r3) - A2 max(M3-0.6, 0)
+VANELESS_A0, VANELESS_A1, VANELESS_A2 = 87.0, 70.0, 5.0
+VANELESS_MIN_RADIUS_RATIO = 1.30   # rotating stall needs a long vaneless diffuser; short spaces ahead of vanes do not trip it (CC3 vaneless: stable to 82 deg at r/r2 1.18)
+# Impeller: tolerable positive inducer incidence grows as the relative Mach falls (Rodgers)
+INDUCER_I_LOW, INDUCER_I_HIGH = 14.0, 6.0
+# Surge-margin uncertainty band, ABSOLUTE SM points, derived from the calibration residuals (HECC fitted,
+# CC3 checked with an assumed vane angle): rss(max residual, 1 % read-off) x 1.3.  Loaded from the
+# calibration file when present so the state of record is the calibration run, not this constant.
+SURGE_BAND_SM = 0.077
+try:  # pragma: no cover - data file optional
+    import json as _json
+    from pathlib import Path as _P
+    _cal = _json.loads((_P(__file__).resolve().parents[1] / "validation" / "data" / "surge_calibration.json").read_text(encoding="utf-8"))
+    SURGE_BAND_SM = float(_cal["band"]["surge_margin_abs"])
+    STALL_K = float(_cal["fit"]["STALL_K"])
+except Exception:  # noqa: BLE001
+    pass
+SURGE_UNCERTAINTY = SURGE_BAND_SM   # kept for older callers: now an absolute SM band
+
+
+def diffuser_stall_incidence(M3: float) -> float:
+    return STALL_I0 - STALL_K * (M3 - 0.5)
+
+
+def vaneless_stall_angle(b3_over_r3: float, M3: float) -> float:
+    return VANELESS_A0 - VANELESS_A1 * b3_over_r3 - VANELESS_A2 * max(M3 - 0.6, 0.0)
 
 
 @dataclass
@@ -141,8 +173,11 @@ class PointResult:
 
 
 def evaluate(g: CompressorGeometry, W: float, omega: float, T01: float, P01: float,
-             slip_model: str | None = None) -> PointResult:
-    """One operating point.  Returns PointResult(ok=False) when choked."""
+             slip_model: str | None = None, igv_deg: float = 0.0) -> PointResult:
+    """One operating point.  Returns PointResult(ok=False) when choked.
+
+    igv_deg: inlet pre-swirl from variable inlet guide vanes, positive with the rotation
+    (reduces incidence and Euler work: dh = U2 Ct2 - U1 Ct1)."""
     R = gas.R_AIR
     sm = slip_model or g.slip_model
     # ------------------------------------------------------------ inlet (station 1)
@@ -157,13 +192,15 @@ def evaluate(g: CompressorGeometry, W: float, omega: float, T01: float, P01: flo
     C1 = M1 * a1
     r1rms = math.sqrt(0.5 * (g.r1s ** 2 + g.r1h ** 2))
     U1rms, U1s = omega * r1rms, omega * g.r1s
-    W1rms, W1s = math.hypot(C1, U1rms), math.hypot(C1, U1s)
-    beta1 = math.degrees(math.atan2(U1rms, C1))
+    Ct1 = C1 * math.tan(math.radians(igv_deg))          # pre-swirl (positive with rotation); the axial component stays C1
+    W1rms, W1s = math.hypot(C1, U1rms - Ct1), math.hypot(C1, U1s - Ct1 * g.r1s / r1rms)
+    beta1 = math.degrees(math.atan2(U1rms - Ct1, C1))
     inc = beta1 - g.beta1b_rms
     M1s_rel = W1s / a1
     # inducer throat choke: spanwise integration of the relative-frame choking capacity
-    # (blade angle law tan(beta_b) ~ r, i.e. designed for uniform axial inflow)
-    W_choke = inducer_choke_flow(g, C1, T1, P1, omega)
+    # (blade angle law tan(beta_b) ~ r, i.e. designed for uniform axial inflow); pre-swirl lowers the
+    # relative velocity, represented by the reduced rms relative speed through an equivalent C1
+    W_choke = inducer_choke_flow(g, C1, T1, P1, omega - Ct1 / r1rms if igv_deg else omega)
     if W >= 0.999 * W_choke:
         return PointResult(ok=False, choked="inducer", reason="inducer throat choked", W=W, M1s_rel=M1s_rel, incidence=inc)
 
@@ -185,7 +222,7 @@ def evaluate(g: CompressorGeometry, W: float, omega: float, T01: float, P01: flo
         C2 = math.hypot(Cm2, Ct2)
         W2 = math.hypot(Cm2, U2 - Ct2)
         alpha2 = math.degrees(math.atan2(Ct2, Cm2))
-        dh_euler = U2 * Ct2
+        dh_euler = U2 * Ct2 - U1rms * Ct1
         # ---------------- parasitic work
         mu = 1.458e-6 * T01 ** 1.5 / (T01 + 110.4)
         Re_df = rho2 * U2 * g.r2 / mu
@@ -242,11 +279,13 @@ def evaluate(g: CompressorGeometry, W: float, omega: float, T01: float, P01: flo
     Cm3 = Cm2 * g.r2 * g.b2 / (g.r3 * g.b3) * (1 - B_metal - 0.06)
     C3 = math.hypot(Cm3, Ct3)
     alpha3 = math.degrees(math.atan2(Ct3, Cm3))
+    T3s_ = T2 + (C2 ** 2 - C3 ** 2) / (2 * cp2)
+    M3 = C3 / math.sqrt(g2 * R * max(T3s_, 50.0))
     a_mean = math.radians(0.5 * (alpha2 + alpha3))
     Cf_v = 0.005 * (1.8e5 / max(Re_b, 1e4)) ** 0.2
     dh_vld = Cf_v * (g.r3 - g.r2) / (g.b2 * math.cos(a_mean)) * C2 ** 2 / 2 * 2.0
     stall = ""
-    if alpha3 > 78.0:
+    if g.n_vanes == 0 and g.r4 / g.r2 >= VANELESS_MIN_RADIUS_RATIO and alpha3 > vaneless_stall_angle(g.b3 / g.r3, M3):
         stall = "vaneless"
     # ------------------------------------------------------------ vaned diffuser (3 -> 4)
     choked = ""
@@ -257,7 +296,7 @@ def evaluate(g: CompressorGeometry, W: float, omega: float, T01: float, P01: flo
         h03s = h02s - dh_vld
         T03s = gas.T_from_h(h03s)
         P03v = P01 * math.exp((gas.phi(T03s) - gas.phi(T01)) / R)
-        A_th_vd = g.n_vanes * g.vane_throat * g.b3 * 0.96
+        A_th_vd = g.n_vanes * g.vane_throat * g.b3 * 0.93   # 7 % throat blockage (vane metal + boundary layers)
         W_ch_vd = gas.mass_flow_function(T02, P03v, 1.0, A_th_vd)
         if W >= 0.999 * W_ch_vd:
             return PointResult(ok=False, choked="diffuser", reason="vaned diffuser throat choked", W=W,
@@ -270,7 +309,7 @@ def evaluate(g: CompressorGeometry, W: float, omega: float, T01: float, P01: flo
         Cp = Cp0 * max(1.0 - 0.9 * (inc_vd / 12.0) ** 2, 0.2)
         dh_vd_ch = max(1 - Cp - 1 / AR ** 2, 0.05) * C3 ** 2 / 2
         C4 = C3 / AR * 1.05
-        if inc_vd > 5.0:
+        if inc_vd > diffuser_stall_incidence(M3):
             stall = stall or "diffuser"
     else:
         Ct4 = Ct2 * g.r2 / g.r4
@@ -279,9 +318,10 @@ def evaluate(g: CompressorGeometry, W: float, omega: float, T01: float, P01: flo
         dh_vd_inc = 0.0
         dh_vd_ch = Cf_v * (g.r4 - g.r3) / (g.b3 * math.cos(a_mean)) * C3 ** 2 / 2 * 2.0
         alpha4 = math.degrees(math.atan2(Ct4, Cm4))
-        if alpha4 > 80.0:
+        if g.r4 / g.r2 >= VANELESS_MIN_RADIUS_RATIO and alpha4 > vaneless_stall_angle(g.b3 / g.r4, M3 * C4 / C3):
             stall = stall or "vaneless"
     dh_exit = 0.15 * C4 ** 2 / 2       # deswirl / dump
+    T4s_ = T02 - C4 ** 2 / (2 * cp2)
     int_total = int_imp + dh_vld + dh_vd_inc + dh_vd_ch + dh_exit
     h03s_all = h01 + dh_euler + dh_par - int_total
     if h03s_all <= h01:
@@ -293,15 +333,16 @@ def evaluate(g: CompressorGeometry, W: float, omega: float, T01: float, P01: flo
     eta = (gas.h(T03ss) - h01) / (h02 - h01)
     # impeller stall indicators: the tolerable positive incidence grows as the inducer relative Mach falls
     # (Rodgers: ~5-6 deg at M1s_rel 1.2+, 12-15 deg at low speed)
-    i_stall = 6.0 + 8.0 * min(max((1.2 - M1s_rel) / 0.6, 0.0), 1.0)
+    i_stall = INDUCER_I_HIGH + (INDUCER_I_LOW - INDUCER_I_HIGH) * min(max((1.2 - M1s_rel) / 0.6, 0.0), 1.0)
     if inc > i_stall:
         stall = "inducer"
     if D_f > 0.72:            # Coppage/Aungier: D_f 0.6 ideal, > ~0.7 stall-prone
         stall = stall or "loading"
     de_haller = W2 / W1rms
-    return PointResult(ok=True, PR_tt=PR, eta_tt=float(eta), PR_ts=P2 / P01, T02=T02, P02=P02, P03=P03, W=W,
+    P4_static = P03 * (T4s_ / T02) ** (g2 / (g2 - 1))    # stage exit static (diffuser exit, before the dump)
+    return PointResult(ok=True, PR_tt=PR, eta_tt=float(eta), PR_ts=P4_static / P01, T02=T02, P02=P02, P03=P03, W=W,
                        N=omega * 60 / (2 * math.pi), incidence=inc, incidence_vd=inc_vd, M1s_rel=M1s_rel, M2=M2,
-                       M3=C3 / math.sqrt(g2 * R * T2), alpha2=alpha2, alpha3=alpha3, D_f=D_f, de_haller=de_haller,
+                       M3=M3, alpha2=alpha2, alpha3=alpha3, D_f=D_f, de_haller=de_haller,
                        losses=dict(incidence=dh_inc, blade_loading=dh_bl, skin_friction=dh_sf, clearance=dh_cl, mixing=dh_mix,
                                    vaneless=dh_vld, vaned_incidence=dh_vd_inc, vaned_channel=dh_vd_ch, exit=dh_exit,
                                    disc_friction=dh_df, recirculation=dh_rc, leakage=dh_lk),
@@ -309,7 +350,7 @@ def evaluate(g: CompressorGeometry, W: float, omega: float, T01: float, P01: flo
 
 
 def speedline(g: CompressorGeometry, omega: float, T01: float, P01: float, n_pts: int = 24,
-              slip_model: str | None = None) -> dict:
+              slip_model: str | None = None, igv_deg: float = 0.0) -> dict:
     """Sweep mass flow from the choke limit down to stall on one speed line.
 
     Returns dict(N, W, PR, eta, stall_W, choke_W, surge_index, points)."""
@@ -320,7 +361,7 @@ def speedline(g: CompressorGeometry, omega: float, T01: float, P01: float, n_pts
     grid = 0.03 * W_ann * 1.12 ** np.arange(0, 40)
     last_ok, first_bad_above = None, None
     for w in grid:
-        r = evaluate(g, w, omega, T01, P01, slip_model)
+        r = evaluate(g, w, omega, T01, P01, slip_model, igv_deg)
         if r.ok:
             last_ok = w
         elif last_ok is not None:
@@ -330,13 +371,13 @@ def speedline(g: CompressorGeometry, omega: float, T01: float, P01: float, n_pts
         return dict(N=omega * 60 / (2 * math.pi), ok=False, reason="no valid operating point at this speed")
     if first_bad_above is None:
         return dict(N=omega * 60 / (2 * math.pi), ok=False, reason="no choke found")
-    W_choke = brentq(lambda w: 1.0 if evaluate(g, w, omega, T01, P01, slip_model).ok else -1.0,
+    W_choke = brentq(lambda w: 1.0 if evaluate(g, w, omega, T01, P01, slip_model, igv_deg).ok else -1.0,
                      last_ok, first_bad_above, xtol=1e-6)
     pts = []
     Ws = np.linspace(0.999 * W_choke, 0.30 * W_choke, n_pts)
     stall_W = None
     for w in Ws:
-        r = evaluate(g, w, omega, T01, P01, slip_model)
+        r = evaluate(g, w, omega, T01, P01, slip_model, igv_deg)
         if not r.ok:
             continue
         pts.append(r)

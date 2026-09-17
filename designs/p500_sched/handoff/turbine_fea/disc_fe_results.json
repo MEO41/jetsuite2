@@ -1,0 +1,99 @@
+{
+ "case": "designs\\p500_sched\\handoff\\turbine_fea\\disc_axisym.inp",
+ "solver": {
+  "mode": "wsl",
+  "distro": "Ubuntu",
+  "ccx": "/usr/bin/ccx"
+ },
+ "run": {
+  "ok": true,
+  "returncode": 0,
+  "log": "designs\\p500_sched\\handoff\\turbine_fea\\disc_axisym.log",
+  "version": "2.21"
+ },
+ "mesh": {
+  "n_nodes": 2533,
+  "n_elements": 2379,
+  "cell_mm": 0.5,
+  "r_rim_m": 0.03491434520593307,
+  "r_min_m": 0.0075
+ },
+ "loads": {
+  "rpm_mcs": 76125.0,
+  "rpm_idle": 36250.0,
+  "blade_pull_N": 617066.4553157687,
+  "thermal": {
+   "dT_max_K": 292.9631175659956,
+   "T_rim_K": 837.8560303542042,
+   "T_bore_K": 544.8929127882086,
+   "t_s": 54.6,
+   "T_rim_ss_K": 950.0,
+   "T_bore_ss_K": 750.0
+  }
+ },
+ "material": "IN713LC",
+ "reference_L1": {
+  "sigma_peak_Pa": 518100339.67372674,
+  "sigma_avg_Pa": 398538722.82594365,
+  "thermal_stress_Pa": null
+ },
+ "reentrant_corners_r_x_m": [
+  [
+   0.027931476164746456,
+   0.2059563321499203
+  ],
+  [
+   0.014353586301483267,
+   0.2059563321499203
+  ],
+  [
+   0.014353586301483267,
+   0.1937280123475724
+  ],
+  [
+   0.027931476164746456,
+   0.1937280123475724
+  ]
+ ],
+ "steps": {
+  "mcs_centrifugal": {
+   "vm_max_Pa": 1285069831.298389,
+   "hoop_max_Pa": 1176602000.0,
+   "hoop_mean_Pa": 398434122.13309824,
+   "peak_r_m": 0.014426793150741636,
+   "peak_x_m": 0.20584587735374904,
+   "vm_max_away_Pa": 967096370.3611842,
+   "hoop_max_away_Pa": 780676800.0,
+   "peak_away_r_m": 0.00775,
+   "peak_away_x_m": 0.19998542255757776,
+   "exclusion_m": 0.001
+  },
+  "mcs_plus_start_thermal": {
+   "vm_max_Pa": 1583933246.7442403,
+   "hoop_max_Pa": 1440408000.0,
+   "hoop_mean_Pa": 398437029.77329224,
+   "peak_r_m": 0.014426793150741636,
+   "peak_x_m": 0.20584587735374904,
+   "vm_max_away_Pa": 1281428675.674246,
+   "hoop_max_away_Pa": 1036358000.0,
+   "peak_away_r_m": 0.00775,
+   "peak_away_x_m": 0.19998542255757776,
+   "exclusion_m": 0.001
+  },
+  "idle_plus_start_thermal": {
+   "vm_max_Pa": 590680180.68415,
+   "hoop_max_Pa": 530608800.0,
+   "hoop_mean_Pa": 90350796.80465873,
+   "peak_r_m": 0.014426793150741636,
+   "peak_x_m": 0.20584587735374904,
+   "vm_max_away_Pa": 533632502.70451695,
+   "hoop_max_away_Pa": 432705900.0,
+   "peak_away_r_m": 0.00775,
+   "peak_away_x_m": 0.19998542255757776,
+   "exclusion_m": 0.001
+  }
+ },
+ "at": "2026-09-16T21:34:00+00:00",
+ "ingest_file": "designs\\p500_sched\\handoff\\turbine_fea\\ingest_disc_fe.json",
+ "variant": "as-designed"
+}

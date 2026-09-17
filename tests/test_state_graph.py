@@ -13,14 +13,14 @@ def make(tmp_path, **over):
     d = Design.create(tmp_path / "d", "t", over)
     rep = d.run()
     assert not rep.failed, rep.failed
-    assert rep.ran == ORDER
+    assert sorted(rep.ran) == sorted(ORDER)
     return d
 
 
 def test_second_run_skips_everything(tmp_path):
     d = make(tmp_path)
     rep = d.run()
-    assert rep.ran == [] and rep.skipped == ORDER
+    assert rep.ran == [] and sorted(rep.skipped) == sorted(ORDER)
 
 
 def test_canonical_hash_insensitive_to_order_and_rounding():

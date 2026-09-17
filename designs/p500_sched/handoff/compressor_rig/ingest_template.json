@@ -1,0 +1,12 @@
+[
+ {
+  "stage": "maps",
+  "tier": "L3",
+  "source": "cold-flow rig <date>",
+  "fields": {
+   "surge_W_corr_measured": null,
+   "choke_W_corr_measured": null,
+   "eta_design_measured": null
+  }
+ }
+]

@@ -1,0 +1,261 @@
+{
+ "schedules": [
+  {
+   "Nc_frac": 0.2,
+   "rpm_at_design_theta": 14500.0,
+   "WfP3_steady_kg_s_per_Pa": null,
+   "accel_mult": 1.5,
+   "decel_mult": 0.55,
+   "bleed_frac": 0.15,
+   "A8_ratio": 1.3,
+   "igv_deg": 25.0,
+   "T04_steady_K": null
+  },
+  {
+   "Nc_frac": 0.3,
+   "rpm_at_design_theta": 21750.0,
+   "WfP3_steady_kg_s_per_Pa": null,
+   "accel_mult": 1.5,
+   "decel_mult": 0.55,
+   "bleed_frac": 0.15,
+   "A8_ratio": 1.3,
+   "igv_deg": 25.0,
+   "T04_steady_K": null
+  },
+  {
+   "Nc_frac": 0.4,
+   "rpm_at_design_theta": 29000.0,
+   "WfP3_steady_kg_s_per_Pa": 2.4802610105058686e-08,
+   "accel_mult": 1.45,
+   "decel_mult": 0.5333333333333333,
+   "bleed_frac": 0.15,
+   "A8_ratio": 1.3,
+   "igv_deg": 25.0,
+   "T04_steady_K": 863.5697973268473
+  },
+  {
+   "Nc_frac": 0.45,
+   "rpm_at_design_theta": 32625.0,
+   "WfP3_steady_kg_s_per_Pa": 2.71035822547676e-08,
+   "accel_mult": 1.4249999999999998,
+   "decel_mult": 0.525,
+   "bleed_frac": 0.15,
+   "A8_ratio": 1.3,
+   "igv_deg": 25.0,
+   "T04_steady_K": 866.8142639829052
+  },
+  {
+   "Nc_frac": 0.5,
+   "rpm_at_design_theta": 36250.0,
+   "WfP3_steady_kg_s_per_Pa": 2.6885261524721085e-08,
+   "accel_mult": 1.4,
+   "decel_mult": 0.5166666666666667,
+   "bleed_frac": 0.12222222222222222,
+   "A8_ratio": 1.3,
+   "igv_deg": 25.0,
+   "T04_steady_K": 818.6958404399275
+  },
+  {
+   "Nc_frac": 0.55,
+   "rpm_at_design_theta": 39875.0,
+   "WfP3_steady_kg_s_per_Pa": 2.7389507912093985e-08,
+   "accel_mult": 1.375,
+   "decel_mult": 0.5083333333333333,
+   "bleed_frac": 0.09444444444444441,
+   "A8_ratio": 1.2571428571428571,
+   "igv_deg": 20.83333333333333,
+   "T04_steady_K": 803.1397178925387
+  },
+  {
+   "Nc_frac": 0.6,
+   "rpm_at_design_theta": 43500.0,
+   "WfP3_steady_kg_s_per_Pa": 2.6745744692243385e-08,
+   "accel_mult": 1.35,
+   "decel_mult": 0.5,
+   "bleed_frac": 0.06666666666666667,
+   "A8_ratio": 1.2142857142857144,
+   "igv_deg": 16.66666666666667,
+   "T04_steady_K": 774.425437101337
+  },
+  {
+   "Nc_frac": 0.65,
+   "rpm_at_design_theta": 47125.0,
+   "WfP3_steady_kg_s_per_Pa": 2.6842742808469064e-08,
+   "accel_mult": 1.325,
+   "decel_mult": 0.49444444444444446,
+   "bleed_frac": 0.038888888888888876,
+   "A8_ratio": 1.1714285714285715,
+   "igv_deg": 12.5,
+   "T04_steady_K": 770.5879389911961
+  },
+  {
+   "Nc_frac": 0.7,
+   "rpm_at_design_theta": 50750.0,
+   "WfP3_steady_kg_s_per_Pa": 2.6247944885822877e-08,
+   "accel_mult": 1.3,
+   "decel_mult": 0.4888888888888889,
+   "bleed_frac": 0.011111111111111127,
+   "A8_ratio": 1.1285714285714286,
+   "igv_deg": 8.33333333333334,
+   "T04_steady_K": 762.1352136951889
+  },
+  {
+   "Nc_frac": 0.75,
+   "rpm_at_design_theta": 54375.0,
+   "WfP3_steady_kg_s_per_Pa": 2.724029666863276e-08,
+   "accel_mult": 1.2875,
+   "decel_mult": 0.48333333333333334,
+   "bleed_frac": 0.0,
+   "A8_ratio": 1.0857142857142856,
+   "igv_deg": 4.166666666666671,
+   "T04_steady_K": 790.7753694372395
+  },
+  {
+   "Nc_frac": 0.8,
+   "rpm_at_design_theta": 58000.0,
+   "WfP3_steady_kg_s_per_Pa": 2.9029908751837518e-08,
+   "accel_mult": 1.275,
+   "decel_mult": 0.4777777777777778,
+   "bleed_frac": 0.0,
+   "A8_ratio": 1.0428571428571427,
+   "igv_deg": 0.0,
+   "T04_steady_K": 837.7557592572891
+  },
+  {
+   "Nc_frac": 0.85,
+   "rpm_at_design_theta": 61625.0,
+   "WfP3_steady_kg_s_per_Pa": 3.1994139075460944e-08,
+   "accel_mult": 1.2625,
+   "decel_mult": 0.4722222222222222,
+   "bleed_frac": 0.0,
+   "A8_ratio": 1.0,
+   "igv_deg": 0.0,
+   "T04_steady_K": 913.4473981103519
+  },
+  {
+   "Nc_frac": 0.9,
+   "rpm_at_design_theta": 65250.0,
+   "WfP3_steady_kg_s_per_Pa": 3.3846804273108955e-08,
+   "accel_mult": 1.25,
+   "decel_mult": 0.4666666666666667,
+   "bleed_frac": 0.0,
+   "A8_ratio": 1.0,
+   "igv_deg": 0.0,
+   "T04_steady_K": 968.3238221821986
+  },
+  {
+   "Nc_frac": 0.95,
+   "rpm_at_design_theta": 68875.0,
+   "WfP3_steady_kg_s_per_Pa": 3.731623458287272e-08,
+   "accel_mult": 1.2166666666666668,
+   "decel_mult": 0.46111111111111114,
+   "bleed_frac": 0.0,
+   "A8_ratio": 1.0,
+   "igv_deg": 0.0,
+   "T04_steady_K": 1063.9116889444729
+  },
+  {
+   "Nc_frac": 1.0,
+   "rpm_at_design_theta": 72500.0,
+   "WfP3_steady_kg_s_per_Pa": 4.1683134248301633e-08,
+   "accel_mult": 1.1833333333333333,
+   "decel_mult": 0.4555555555555556,
+   "bleed_frac": 0.0,
+   "A8_ratio": 1.0,
+   "igv_deg": 0.0,
+   "T04_steady_K": 1182.9630428326527
+  },
+  {
+   "Nc_frac": 1.05,
+   "rpm_at_design_theta": 76125.0,
+   "WfP3_steady_kg_s_per_Pa": 4.7015779432010184e-08,
+   "accel_mult": 1.15,
+   "decel_mult": 0.45,
+   "bleed_frac": 0.0,
+   "A8_ratio": 1.0,
+   "igv_deg": 0.0,
+   "T04_steady_K": 1334.3425835814949
+  },
+  {
+   "Nc_frac": 1.1,
+   "rpm_at_design_theta": 79750.0,
+   "WfP3_steady_kg_s_per_Pa": null,
+   "accel_mult": 1.15,
+   "decel_mult": 0.45,
+   "bleed_frac": 0.0,
+   "A8_ratio": 1.0,
+   "igv_deg": 0.0,
+   "T04_steady_K": null
+  }
+ ],
+ "limits": {
+  "idle_N_frac": 0.5,
+  "N_max_frac": 1.05,
+  "overspeed_trip_frac": 1.1,
+  "overspeed_trip_delay_s": 0.1,
+  "T04_limit_K": 1200.0,
+  "EGT_limit_K": 1046.6483275556325,
+  "EGT_sensor_basis": "Tt5 at the design point + 0.87 x (T04 limit - T04 design)",
+  "fuel_lag_s": 0.3,
+  "governor_gain": 8.0,
+  "start": {
+   "light_off_N": 0.1,
+   "starter_cutoff_N": 0.35,
+   "ramp_rate": 0.25,
+   "starter_torque_Nm": 0.5
+  },
+  "design_rpm": 72500.0,
+  "rpm_mcs": 76125.0,
+  "bearing_T_abort_K": 389.47539323366186,
+  "bearing_T_abort_basis": "predicted bearing T + margin",
+  "vibration_abort_um": 40.0,
+  "surge_detection": "P3 falls > 5 % in 20 ms while N rises, or Kulite rms > 3x baseline: open bleed, cut to the decel line",
+  "flameout_detection": "EGT drop > 100 K/s with fuel on: fuel off, auto-relight attempt above the windmill speed once",
+  "igv": {
+   "enabled": true,
+   "fail_position": "open",
+   "fail_deg": 0.0,
+   "rate_required_deg_s": 9.374999999999996
+  },
+  "bleed": {
+   "enabled": true,
+   "port": {
+    "location": "diffuser_exit",
+    "x_m": 0.048839902541957164,
+    "r_m": 0.09166385990965861,
+    "d_m": 0.017426841160775895,
+    "W_max_kg_s": 0.0715563997596577
+   }
+  },
+  "nozzle": {
+   "variable": true
+  },
+  "sensor_loss": {
+   "N": "abort (no safe fallback)",
+   "P3": "fuel from the N-only schedule (steady P3 at the ambient), accel line x0.8",
+   "T04_or_EGT": "accel line x0.8, T04 limit -50 K, no hot-day corrections",
+   "IGV_position": "vanes to the failure position, bleed interlock open"
+  }
+ },
+ "provenance": {
+  "design": "p500",
+  "version": 55,
+  "at": "2026-09-17T06:33:31+00:00",
+  "tiers": {
+   "control": "L1",
+   "offdesign": "L2",
+   "transient": "L2",
+   "thermal": "L1"
+  },
+  "transient_scenarios": [
+   "start",
+   "accel",
+   "decel",
+   "hot_start",
+   "hung_start",
+   "igv_failed",
+   "overspeed",
+   "flameout"
+  ]
+ }
+}

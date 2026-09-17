@@ -1,0 +1,41 @@
+{
+ "_doc": "Measured centrifugal-compressor rig cases used to calibrate and validate the surge/stall model. Geometry from the original reports where available; map points digitised from the cited figures (read-off uncertainty ~1 % in flow, ~0.5 % in PR).",
+ "hecc": {
+  "source": "NASA/CR-2014-218114/REV1 (Medic et al., 'High Efficiency Centrifugal Compressor for Rotorcraft Applications'); Appendix C blade/vane coordinates; vendored in boomsonic_v0 scripts/phase0_tools/vendor/data/hecc",
+  "geometry": {"r1h": 0.040484, "r1s": 0.107981, "r2": 0.21581, "b2": 0.015469, "beta1b_rms": 45.46, "beta2b": 36.0,
+               "n_main": 15, "n_split": 15, "split_frac": 0.69, "t_le": 0.0042, "t_te": 0.0007, "clearance": 0.000305,
+               "L_ax": 0.145, "r3": 0.231328, "r4": 0.284592, "b3": 0.0142, "n_vanes": 20, "vane_le_angle": 79.64,
+               "vane_te_angle": 36.71, "vane_throat": 0.02106, "note": "vane_throat = throat_area 5.983e-3 / (20 x b3); 20 splitter vanes not blocking the throat; b3 pinched from 15.47 to 14.2 mm"},
+  "design": {"rpm": 21789, "W": 4.9269, "T01": 288.15, "P01": 101325.0, "PR_tt": 4.6847, "eta_tt": 0.8217},
+  "surge": {"W_last_stable": 4.68697, "PR_last_stable": 4.8323, "W_over_Wd": 0.9513, "note": "PR still rising at the last stable point (slope -0.41)"},
+  "choke": {"W": 5.239, "note": "vertical part of the measured 100 % line"},
+  "speedline_100": [[5.23854, 3.4105, 0.6343], [5.23899, 3.6010, 0.6669], [5.23173, 3.8022, 0.7004], [5.23945, 3.8999, 0.7150],
+                    [5.23672, 4.0034, 0.7315], [5.23037, 4.0999, 0.7476], [5.19953, 4.2035, 0.7633], [5.17866, 4.2997, 0.7771],
+                    [5.14963, 4.3945, 0.7895], [5.09611, 4.5133, 0.8034], [5.00086, 4.6152, 0.8158], [4.92692, 4.6847, 0.8217],
+                    [4.84255, 4.7581, 0.8258], [4.75501, 4.8012, 0.8277], [4.72915, 4.8151, 0.8279], [4.68697, 4.8323, 0.8283]],
+  "speedline_columns": ["W_corr_kg_s", "PR_tt", "eta_tt"]
+ },
+ "cc3_vaned": {
+  "source": "Kulkarni, Beach, Skoch, 'Computational Study of the CC3 Impeller and Vaneless Diffuser Experiment' (NTRS 20140009577) Table 1 and Fig. 2; McKain & Holbrook NASA CR-204134 (1997) for the design; diffuser radii from Skoch's CC3 papers (approximate)",
+  "geometry": {"r1h": 0.041, "r1s": 0.105, "r2": 0.2155, "b2": 0.017, "beta1b_rms": 52.0, "beta2b": 50.0,
+               "n_main": 15, "n_split": 15, "split_frac": 0.65, "t_le": 0.0025, "t_te": 0.0012, "clearance": 0.0003,
+               "L_ax": 0.14, "r3": 0.2306, "r4": 0.30, "b3": 0.017, "n_vanes": 24, "vane_le_angle": null,
+               "vane_te_angle": 35.0, "vane_throat": null, "note": "vane LE angle and throat not tabulated in the sources used: set by the suite's design rule (LE at the L2 vaneless-exit angle minus the design incidence; throat at M 0.70), which is flagged as an assumption"},
+  "design": {"rpm": 21789, "W": 4.54, "T01": 288.15, "P01": 101325.0, "PR_ts": 3.93, "eta_tt": 0.855, "note": "PR_ts 3.93 at 10.0 lbm/s from Fig. 2 (design-speed data, inlet ~86 kPa, corrected)"},
+  "surge": {"W_last_stable": 4.264, "PR_last_stable": 4.03, "W_over_Wd": 0.939, "note": "leftmost measured point of the design-speed vaned line, 9.40 lbm/s; the paper does not state whether it is the surge point"},
+  "choke": {"W": 4.695, "note": "10.35 lbm/s at PR_ts 2.85"},
+  "speedline_100_ts": [[4.264, 4.03], [4.332, 4.00], [4.423, 3.97], [4.491, 3.95], [4.536, 3.93], [4.559, 3.88], [4.604, 3.80],
+                       [4.627, 3.62], [4.663, 3.38], [4.686, 2.85]],
+  "speedline_columns": ["W_corr_kg_s", "PR_ts"]
+ },
+ "cc3_vaneless": {
+  "source": "Kulkarni, Beach, Skoch (NTRS 20140009577) Fig. 8, design speed, vaneless diffuser (exit rating station R/R_TE 1.18)",
+  "geometry_ref": "cc3_vaned impeller with n_vanes 0, r4 = 1.18 r2",
+  "design": {"rpm": 21789, "W": 4.65, "T01": 288.15, "P01": 101325.0, "PR_tt": 4.10, "eta_tt": 0.866},
+  "stable_range": {"W_min_measured": 3.266, "W_over_Wd": 0.72, "note": "lowest measured point 7.2 lbm/s with PR still rising (4.43): no stall down to at least 72 % of design flow"},
+  "speedline_100_tt": [[3.266, 4.43, 0.818], [3.425, 4.42, 0.827], [3.697, 4.41, 0.842], [4.150, 4.38, 0.856], [4.400, 4.32, 0.861],
+                       [4.468, 4.25, 0.860], [4.581, 4.19, 0.864], [4.649, 4.10, 0.866], [4.763, 4.05, 0.866], [4.876, 3.98, 0.864],
+                       [4.944, 3.93, 0.860], [5.012, 3.85, 0.842], [5.057, 3.68, 0.830], [5.103, 3.43, 0.818]],
+  "speedline_columns": ["W_corr_kg_s", "PR_tt", "eta_tt"]
+ }
+}

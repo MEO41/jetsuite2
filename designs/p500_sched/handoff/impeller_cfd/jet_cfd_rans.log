@@ -1,0 +1,19 @@
+  H-mesh: 50623 nodes, 45584 hexes; first cell blade 0.350 mm, hub 0.251 mm; markers {'INLET': 616, 'OUTLET': 616, 'HUB': 2072, 'SHROUD': 2072, 'BLADE': 3300, 'PER_A': 572, 'PER_B': 572}
+  throttle block 0: p_out 357249 Pa -> choke, W_in 0.06344252663 W_out 0.1638651243 (target 0.1084), PR_tt 5.834477962953517, eta_tt 1.0098605725206644, rms -5.043168313
+    continuing at the same p_out (block 2 of 3 at this pressure)
+  throttle block 1: p_out 357249 Pa -> collapse, W_in 0.1026561358 W_out 0.01126915198 (target 0.1084), PR_tt 5.882739451171701, eta_tt 1.0999831234091773, rms -5.276774454
+    continuing at the same p_out (block 3 of 3 at this pressure)
+  throttle block 2: p_out 357249 Pa -> healthy, W_in 0.0969842429 W_out 0.09354583251 (target 0.1084), PR_tt 6.408363345153788, eta_tt 1.1222040288705226, rms -5.236597085
+  throttle block 3: p_out 348581 Pa -> failed, W_in None W_out None (target 0.1084), PR_tt None, eta_tt None, rms None
+  throttle block 4: p_out 311233 Pa -> failed, W_in None W_out None (target 0.1084), PR_tt None, eta_tt None, rms None
+  throttle block 5: p_out 277886 Pa -> failed, W_in None W_out None (target 0.1084), PR_tt None, eta_tt None, rms None
+  throttle block 6: p_out 248113 Pa -> failed, W_in None W_out None (target 0.1084), PR_tt None, eta_tt None, rms None
+  throttle block 7: p_out 221529 Pa -> failed, W_in None W_out None (target 0.1084), PR_tt None, eta_tt None, rms None
+  throttle block 8: p_out 197794 Pa -> failed, W_in None W_out None (target 0.1084), PR_tt None, eta_tt None, rms None
+  throttle block 9: p_out 176602 Pa -> failed, W_in None W_out None (target 0.1084), PR_tt None, eta_tt None, rms None
+  throttle block 10: p_out 157680 Pa -> failed, W_in None W_out None (target 0.1084), PR_tt None, eta_tt None, rms None
+  throttle block 11: p_out 140786 Pa -> failed, W_in None W_out None (target 0.1084), PR_tt None, eta_tt None, rms None
+mesher hmesh: 45584 cells / 50623 nodes, markers {'INLET': 616, 'OUTLET': 616, 'HUB': 2072, 'SHROUD': 2072, 'BLADE': 3300, 'PER_A': 572, 'PER_B': 572}  (203 s)
+SU2: ok (C:\Users\MEO\Desktop\Projects\JetEngine\jetsuitev2\tools\su2\bin\SU2_CFD.exe), log designs\p500_sched\handoff\impeller_cfd\passage_t2.log
+  inlet W 0.0970 kg/s (target 0.1084 per passage), PR_tt 6.408, T ratio 1.6239, eta_tt 1.122, rms rho -5.236597085
+  L1 reference: eta_impeller_assumed 0.8646, PR_impeller_tt None

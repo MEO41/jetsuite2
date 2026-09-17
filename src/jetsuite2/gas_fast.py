@@ -38,8 +38,34 @@ def _row(tab, far):
     return (1 - w) * tab[i] + w * tab[i + 1] if w else tab[i]
 
 
+_T0, _DT, _NT = float(T_GRID[0]), float(T_GRID[1] - T_GRID[0]), len(T_GRID)
+_H_L, _PHI_L, _CP_L = _H.tolist(), _PHI.tolist(), _CP.tolist()      # python lists: scalar lookups without numpy overhead
+_FAR_L = FAR_GRID.tolist()
+
+
+def _scalar(tab_l, T: float, far: float) -> float:
+    """Bilinear scalar lookup on the uniform T grid and the FAR grid (the hot path of the matching loops)."""
+    far = 0.0 if far <= 0.0 else (_FAR_L[-1] if far >= _FAR_L[-1] else far)
+    i = int(far / 0.01)
+    i = min(i, len(_FAR_L) - 2)
+    w = (far - _FAR_L[i]) / (_FAR_L[i + 1] - _FAR_L[i])
+    x = (T - _T0) / _DT
+    if x <= 0.0:
+        j, u = 0, 0.0
+    elif x >= _NT - 1:
+        j, u = _NT - 2, 1.0
+    else:
+        j = int(x); u = x - j
+    r0, r1 = tab_l[i], tab_l[i + 1]
+    v0 = r0[j] + (r0[j + 1] - r0[j]) * u
+    if w == 0.0:
+        return v0
+    v1 = r1[j] + (r1[j + 1] - r1[j]) * u
+    return v0 + (v1 - v0) * w
+
+
 def cp(T: float, far: float = 0.0) -> float:
-    return float(np.interp(T, T_GRID, _row(_CP, far)))
+    return _scalar(_CP_L, float(T), float(far)) if np.ndim(T) == 0 else float(np.interp(T, T_GRID, _row(_CP, far)))
 
 
 def gamma(T: float, far: float = 0.0) -> float:
@@ -48,11 +74,11 @@ def gamma(T: float, far: float = 0.0) -> float:
 
 
 def h(T: float, far: float = 0.0) -> float:
-    return float(np.interp(T, T_GRID, _row(_H, far)))
+    return _scalar(_H_L, float(T), float(far)) if np.ndim(T) == 0 else float(np.interp(T, T_GRID, _row(_H, far)))
 
 
 def phi(T: float, far: float = 0.0) -> float:
-    return float(np.interp(T, T_GRID, _row(_PHI, far)))
+    return _scalar(_PHI_L, float(T), float(far)) if np.ndim(T) == 0 else float(np.interp(T, T_GRID, _row(_PHI, far)))
 
 
 def T_from_h(hv: float, far: float = 0.0) -> float:

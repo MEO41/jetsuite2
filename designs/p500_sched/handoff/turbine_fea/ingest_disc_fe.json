@@ -1,0 +1,19 @@
+[
+ {
+  "stage": "mechanical",
+  "tier": "L3",
+  "source": "CalculiX 2.21 axisymmetric CAX4 disc, 2379 elements, 2026-09-16T21:34:00+00:00",
+  "fields": {
+   "turbine.sigma_peak_Pa": 967096370.3611842,
+   "turbine.sigma_avg_Pa": 398434122.13309824
+  }
+ },
+ {
+  "stage": "life",
+  "tier": "L3",
+  "source": "CalculiX 2.21 axisymmetric CAX4 disc, 2379 elements, 2026-09-16T21:34:00+00:00; peak taken >= 1 mm from the unfilleted re-entrant corners (singular there)",
+  "fields": {
+   "sigma_bore_total_Pa": 1281428675.674246
+  }
+ }
+]

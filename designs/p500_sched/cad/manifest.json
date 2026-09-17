@@ -1,0 +1,63 @@
+{
+ "builders": {
+  "inlet": {
+   "key": "df4b475ea700b068",
+   "files": {
+    "inlet_shroud": "inlet_shroud.df4b475ea700b068.brep"
+   },
+   "materials": {
+    "inlet_shroud": "Al6061-T6"
+   },
+   "valid": {
+    "inlet_shroud": true
+   },
+   "elapsed_s": 0.09190490000037244,
+   "built_at": "2026-09-16T21:39:16"
+  },
+  "igv": {
+   "key": "001325f7463867b8",
+   "files": {
+    "igv_vanes": "igv_vanes.001325f7463867b8.brep",
+    "igv_hub_bullet": "igv_hub_bullet.001325f7463867b8.brep",
+    "igv_unison_ring": "igv_unison_ring.001325f7463867b8.brep"
+   },
+   "materials": {
+    "igv_vanes": "AISI321",
+    "igv_hub_bullet": "Al6061-T6",
+    "igv_unison_ring": "Al6061-T6"
+   },
+   "valid": {
+    "igv_vanes": true,
+    "igv_hub_bullet": true,
+    "igv_unison_ring": true
+   },
+   "elapsed_s": 0.8973920999997063,
+   "built_at": "2026-09-16T21:39:17"
+  }
+ },
+ "parts": {
+  "inlet_shroud": {
+   "volume_cm3": 169.72078771084998,
+   "mass_kg": 0.458246126819295,
+   "valid": true
+  },
+  "igv_vanes": {
+   "volume_cm3": 7.800695537223276,
+   "mass_kg": 0.06162549474406389,
+   "valid": true
+  },
+  "igv_hub_bullet": {
+   "volume_cm3": 14.686159322379764,
+   "mass_kg": 0.03965263017042537,
+   "valid": true
+  },
+  "igv_unison_ring": {
+   "volume_cm3": 11.315815267040692,
+   "mass_kg": 0.03055270122100987,
+   "valid": true
+  }
+ },
+ "mass_total_kg": 0.5900769529547941,
+ "design_version": 44,
+ "checks": []
+}

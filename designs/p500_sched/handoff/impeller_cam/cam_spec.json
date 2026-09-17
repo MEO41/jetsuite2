@@ -1,0 +1,51 @@
+{
+ "design": "p500",
+ "version": 56,
+ "at": "2026-09-17T07:17:20+00:00",
+ "material": "Ti-6Al-4V",
+ "n_main": 8,
+ "n_splitter": 8,
+ "pitch_deg": 45.0,
+ "wrap_deg": 71.2935899069566,
+ "D2_mm": 131.3968984197951,
+ "r1s_mm": 42.02160193143593,
+ "r1h_mm": 14.707560676002577,
+ "b2_mm": 7.694041629208182,
+ "axial_length_mm": 42.04700749433443,
+ "blade_thickness_mm": {
+  "root": 1.77203480283409,
+  "tip": 0.6569844920989755
+ },
+ "tip_clearance_mm": 0.2627937968395903,
+ "fillet": {
+  "radius_mm": 1.0,
+  "applied": false,
+  "note": "OCC fillet builder failed (suction/pressure root curves only, 0.6 x radius, r 0.60 mm, 51 edges); sharp solid exported",
+  "edges": 85
+ },
+ "process": "billet-5axis",
+ "passage_width_min_mm": 12.261124604803461,
+ "surface_Ra_um": 0.8,
+ "machining_notes": [
+  "flank-mill the suction and pressure surfaces from the CSV grids (span-major order)",
+  "root fillet r 1.0 mm applied by the CAM system along the hub intersection",
+  "leave 0.1 mm on the shroud contour for the final tip-clearance grind",
+  "balance to the grade in manufacturing.balance after machining"
+ ],
+ "files": {
+  "main_blade_suction": "main_blade_suction.csv",
+  "main_blade_pressure": "main_blade_pressure.csv",
+  "splitter_suction": "splitter_suction.csv",
+  "splitter_pressure": "splitter_pressure.csv",
+  "hub_curve": "hub_curve.csv",
+  "shroud_curve": "shroud_curve.csv",
+  "hub": "hub.step",
+  "main_blade": "main_blade.step",
+  "impeller_sharp": "impeller_sharp.step"
+ },
+ "cad_notes": [
+  "main blade volume 2.040 cm3, valid=True, wrap 71.3 deg",
+  "splitter volume 0.970 cm3, valid=True",
+  "impeller (multi-tool fuse): fused volume 200.49 cm3 (base 177.62 + tools 24.08)"
+ ]
+}

@@ -1,0 +1,1337 @@
+
+-------------------------------------------------------------------------
+|    ___ _   _ ___                                                      |
+|   / __| | | |_  )   Release 8.5.0 "Harrier"                           |
+|   \__ \ |_| |/ /                                                      |
+|   |___/\___//___|   Suite (Computational Fluid Dynamics Code)         |
+|                                                                       |
+-------------------------------------------------------------------------
+| SU2 Project Website: https://su2code.github.io                        |
+|                                                                       |
+| The SU2 Project is maintained by the SU2 Foundation                   |
+| (http://su2foundation.org)                                            |
+-------------------------------------------------------------------------
+| Copyright 2012-2026, SU2 Contributors                                 |
+|                                                                       |
+| SU2 is free software; you can redistribute it and/or                  |
+| modify it under the terms of the GNU Lesser General Public            |
+| License as published by the Free Software Foundation; either          |
+| version 2.1 of the License, or (at your option) any later version.    |
+|                                                                       |
+| SU2 is distributed in the hope that it will be useful,                |
+| but WITHOUT ANY WARRANTY; without even the implied warranty of        |
+| MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU      |
+| Lesser General Public License for more details.                       |
+|                                                                       |
+| You should have received a copy of the GNU Lesser General Public      |
+| License along with SU2. If not, see <http://www.gnu.org/licenses/>.   |
+-------------------------------------------------------------------------
+
+Parsing config file for zone 0
+
+----------------- Physical Case Definition ( Zone 0 ) -------------------
+Compressible Euler equations.
+Mach number: 0.3.
+Angle of attack (AoA): 0 deg, and angle of sideslip (AoS): 0 deg.
+Performing a dynamic mesh simulation: rotating reference frame.
+Reading and writing ASCII SU2 native restart files.
+Read flow solution from: annulus_solid.csv.
+Dimensional simulation.
+The reference area is 1 m^2.
+The semi-span will be computed using the max y(3D) value.
+The reference length is 0.1314 m.
+Reference origin for moment evaluation is (0, 0, 0).
+Surface(s) where the force coefficients are evaluated: HUB.
+
+Surface(s) to be analyzed in detail: HUB.
+Input mesh file name: annulus.su2
+
+--------------- Space Numerical Integration ( Zone 0 ) ------------------
+Roe (with entropy fix = 0.001) solver for the flow inviscid terms.
+Standard Roe without low-dissipation function.
+Second order integration in space, with slope limiter.
+Venkatakrishnan slope-limiting method, with constant: 0.05.
+The reference element size is: 1. 
+Gradient for upwind reconstruction: inverse-distance weighted Least-Squares.
+Gradient for viscous and source terms: inverse-distance weighted Least-Squares.
+
+--------------- Time Numerical Integration  ( Zone 0 ) ------------------
+Local time stepping (steady state simulation).
+Euler implicit method for the flow equations.
+FGMRES is used for solving the linear system.
+Using a ILU(0) preconditioning.
+Convergence criteria of the linear solver: 0.0001.
+Max number of linear iterations: 25.
+No CFL adaptation.
+Courant-Friedrichs-Lewy number:        2
+
+------------------ Convergence Criteria  ( Zone 0 ) ---------------------
+Maximum number of solver subiterations: 300.
+Begin convergence monitoring at iteration 50.
+Residual minimum value: 1e-8.
+Cauchy series min. value: 1e-10.
+Number of Cauchy elements: 100.
+Begin windowed time average at iteration 0.
+
+-------------------- Output Information ( Zone 0 ) ----------------------
+File writing frequency: 
++------------------------------------+
+|                     File| Frequency|
++------------------------------------+
+|                      CSV|       300|
++------------------------------------+
+Writing the convergence history file every 1 inner iterations.
+Writing the screen convergence history every 100 inner iterations.
+The tabular file format is CSV (.csv).
+Convergence history file name: history_rotboxper2.
+Forces breakdown file name: forces_breakdown.dat.
+Surface file name: surface_flow.
+Volume file name: flow.
+Restart file name: restart_rotboxper2.csv.
+
+------------- Config File Boundary Information ( Zone 0 ) ---------------
++-----------------------------------------------------------------------+
+|                        Marker Type|                        Marker Name|
++-----------------------------------------------------------------------+
+|                         Euler wall|                                HUB|
+|                                   |                             SHROUD|
+|                                   |                              INLET|
+|                                   |                             OUTLET|
++-----------------------------------------------------------------------+
+|                  Periodic boundary|                              PER_A|
+|                                   |                              PER_B|
+|                                   |                              PER_B|
+|                                   |                              PER_A|
++-----------------------------------------------------------------------+
+
+-------------------- Output Preprocessing ( Zone 0 ) --------------------
+
+WARNING: SURFACE_PRESSURE_DROP can only be computed for at least 2 surfaces (outlet, inlet, ...)
+
+Screen output fields: INNER_ITER, RMS_DENSITY
+  Info: Ignoring the following history output groups:
+  AVG_MASSFLOW
+History output group(s): ITER, RMS_RES, FLOW_COEFF, SURFACE_MASSFLOW, SURFACE_TOTAL_PRESSURE, SURFACE_TOTAL_TEMPERATURE, SURFACE_STATIC_PRESSURE
+Convergence field(s): RMS_DENSITY
+Warning: No (valid) fields chosen for time convergence monitoring. Time convergence monitoring inactive.
+Volume output fields: COORDINATES, SOLUTION, PRIMITIVE, GRID_VELOCITY
+
+------------------- Geometry Preprocessing ( Zone 0 ) -------------------
+Three dimensional problem.
+6929 grid points.
+5760 volume elements.
+6 surface markers.
+144 boundary elements in index 0 (Marker = INLET).
+144 boundary elements in index 1 (Marker = OUTLET).
+480 boundary elements in index 2 (Marker = HUB).
+480 boundary elements in index 3 (Marker = SHROUD).
+480 boundary elements in index 4 (Marker = PER_A).
+480 boundary elements in index 5 (Marker = PER_B).
+5760 hexahedra.
+Setting point connectivity.
+Renumbering points (Reverse Cuthill McKee Ordering).
+Recomputing point connectivity.
+Setting element connectivity.
+Checking the numerical grid orientation.
+All volume elements are correctly oriented.
+There has been a re-orientation of 1104 QUADRILATERAL surface elements.
+Identifying edges and vertices.
+Setting the control volume structure.
+Volume of the computational grid: 3.03714e-05.
+Searching for the closest normal neighbors to the surfaces.
+Storing a mapping from global to local point index.
+Compute the surface curvature.
+Max K: 0. Mean K: 0. Standard deviation K: 0.
+Computing mesh quality statistics for the dual control volumes.
++--------------------------------------------------------------+
+|           Mesh Quality Metric|        Minimum|        Maximum|
++--------------------------------------------------------------+
+|    Orthogonality Angle (deg.)|         89.621|         89.621|
+|     CV Face Area Aspect Ratio|        1.20874|        4.39029|
+|           CV Sub-Volume Ratio|        1.02784|        1.14365|
++--------------------------------------------------------------+
+Finding max control volume width.
+Semi-span length = 0.0147 m.
+Wetted area = 0.000576881 m^2.
+Area projection in the x-plane = 1.286e-21 m^2, y-plane = 0 m^2, z-plane = 0 m^2.
+Max. coordinate in the x-direction = 0.025 m, y-direction = 0.0147 m, z-direction = 0.0103945 m.
+Min. coordinate in the x-direction = -0.025 m, y-direction = 0.0103945 m, z-direction = 0 m.
+Matching the periodic boundary points for marker pair 1.
+
+   Bad match for point 0.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 169.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 182.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 13.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 195.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 26.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 208.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 39.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 221.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 52.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 234.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 65.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 247.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 78.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 260.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 91.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 273.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 104.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 286.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 117.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 299.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 130.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 312.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 143.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 325.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 156.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 338.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 351.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 364.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 377.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 390.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 403.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 416.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 429.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 442.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 455.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 468.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 481.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 494.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 507.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 520.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 533.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 546.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 559.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 572.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 585.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 598.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 611.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 624.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 637.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 650.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 663.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 676.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 689.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 702.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 715.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 728.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 741.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 754.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 767.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 780.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 793.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 806.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 819.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 832.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 845.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 858.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 871.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 884.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 897.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 910.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 923.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 936.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 949.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 962.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 975.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 988.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 1001.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 1014.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 1027.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 1040.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 1053.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 1066.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 1079.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 1092.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 1105.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 1118.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 1131.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 1144.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 1157.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 1170.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 1183.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 1196.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 1209.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 1222.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 1235.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 1248.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 1261.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 1274.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 1287.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 1300.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 1313.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 1326.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 1339.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 1352.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 1365.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 1378.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 1391.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 1404.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 1417.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 1430.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 1443.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 1456.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 1469.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 1482.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 1495.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 1508.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 1521.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 1534.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 1547.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 1560.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 1573.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 1586.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 1599.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 1612.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 1625.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 1638.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 1651.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 1664.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 1677.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 1690.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 1703.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 1716.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 1729.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 1742.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 1755.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 1768.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 1781.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 1794.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 1807.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 1820.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 1833.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 1846.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 1859.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 1872.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 1885.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 1898.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 1911.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 1924.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 1937.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 1950.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 1963.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 1976.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 1989.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 2002.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 2015.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 2028.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 2041.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 2054.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 2067.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 2080.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 2093.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 2106.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 2119.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 2132.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 2145.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 2158.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 2171.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 2184.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 2197.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 2210.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 2223.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 2236.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 2249.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 2262.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 2275.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 2288.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 2301.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 2314.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 2327.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 2340.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 2353.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 2366.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 2379.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 2392.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 2405.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 2418.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 2431.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 2444.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 2457.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 2470.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 2483.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 2496.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 2509.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 2522.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 2535.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 2548.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 2561.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 2574.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 2587.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 2600.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 2613.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 2626.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 2639.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 2652.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 2665.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 2678.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 2691.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 2704.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 2717.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 2730.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 2743.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 2756.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 2769.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 2782.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 2795.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 2808.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 2821.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 2834.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 2847.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 2860.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 2873.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 2886.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 2899.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 2912.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 2925.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 2938.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 2951.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 2964.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 2977.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 2990.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 3003.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 3016.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 3029.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 3042.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 3055.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 3068.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 3081.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 3094.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 3107.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 3120.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 3133.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 3146.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 3159.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 3172.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 3185.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 3198.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 3211.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 3224.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 3237.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 3250.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 3263.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 3276.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 3289.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 3302.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 3315.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 3328.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 3341.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 3354.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 3367.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 3380.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 3393.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 3406.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 3419.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 3432.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 3445.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 3458.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 3471.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 3484.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 3497.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 3510.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 3523.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 3536.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 3549.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 3562.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 3575.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 3588.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 3601.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 3614.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 3627.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 3640.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 3653.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 3666.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 3679.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 3692.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 3705.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 3718.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 3731.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 3744.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 3757.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 3770.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 3783.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 3796.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 3809.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 3822.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 3835.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 3848.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 3861.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 3874.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 3887.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 3900.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 3913.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 3926.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 3939.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 3952.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 3965.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 3978.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 3991.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 4004.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 4017.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 4030.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 4043.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 4056.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 4069.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 4082.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 4095.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 4108.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 4121.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 4134.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 4147.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 4160.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 4173.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 4186.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 4199.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 4212.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 4225.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 4238.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 4251.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 4264.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 4277.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 4290.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 4303.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 4316.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 4329.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 4342.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 4355.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 4368.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 4381.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 4394.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 4407.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 4420.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 4433.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 4446.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 4459.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 4472.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 4485.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 4498.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 4511.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 4524.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 4537.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 4550.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 4563.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 4576.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 4589.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 4602.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 4615.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 4628.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 4641.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 4654.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 4667.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 4680.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 4693.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 4706.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 4719.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 4732.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 4745.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 4758.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 4771.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 4784.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 4797.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 4810.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 4823.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 4836.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 4849.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 4862.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 4875.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 4888.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 4901.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 4914.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 4927.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 4940.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 4953.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 4966.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 4979.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 4992.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 5005.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 5018.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 5031.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 5044.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 5057.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 5070.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 5083.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 5096.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 5109.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 5122.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 5135.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 5148.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 5161.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 5174.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 5187.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 5200.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 5213.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 5226.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 5239.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 5252.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 5265.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 5278.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 5291.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 5304.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 5317.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 5330.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 5343.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 5356.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 5369.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 5382.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 5395.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 5408.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 5421.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 5434.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 5447.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 5460.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 5473.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 5486.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 5499.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 5512.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 5525.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 5538.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 5551.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 5564.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 5577.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 5590.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 5603.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 5616.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 5629.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 5642.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 5655.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 5668.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 5681.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 5694.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 5707.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 5720.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 5733.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 5746.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 5759.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 5772.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 5785.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 5798.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 5811.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 5824.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 5837.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 5850.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 5863.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 5876.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 5889.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 5902.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 5915.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 5928.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 5941.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 5954.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 5967.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 5980.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 5993.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 6006.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 6019.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 6032.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 6045.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 6058.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 6071.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 6084.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 6097.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 6110.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 6123.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 6136.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 6149.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 6162.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 6175.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 6188.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 6201.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 6214.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 6227.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 6240.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 6253.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 6266.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 6279.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 6292.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 6305.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 6318.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 6331.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 6344.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 6357.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 6370.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 6383.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 6396.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 6409.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 6422.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 6435.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 6448.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 6461.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 6474.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 6487.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 6500.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 6513.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 6526.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 6539.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 6552.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 6565.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 6578.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 6591.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 6604.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 6617.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 6630.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 6643.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 6656.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 6669.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 6682.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 6695.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 6708.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 6721.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 6734.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 6747.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 6760.	Nearest donor distance: 1.1320118873e-02.
+   Bad match for point 6773.	Nearest donor distance: 1.2302372911e-02.
+   Bad match for point 6786.	Nearest donor distance: 1.3655234058e-02.
+   Bad match for point 6799.	Nearest donor distance: 1.5229369820e-02.
+   Bad match for point 6812.	Nearest donor distance: 1.6829773461e-02.
+   Bad match for point 6825.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 6838.	Nearest donor distance: 2.0062293638e-02.
+   Bad match for point 6851.	Nearest donor distance: 2.1655536250e-02.
+   Bad match for point 6864.	Nearest donor distance: 2.3269991328e-02.
+   Bad match for point 6877.	Nearest donor distance: 2.4895592543e-02.
+   Bad match for point 6890.	Nearest donor distance: 2.6484263384e-02.
+   Bad match for point 6903.	Nearest donor distance: 2.8091021835e-02.
+   Bad match for point 6916.	Nearest donor distance: 2.9712933722e-02. Matched 533 points with a max distance of: 0.0000000000e+00.
+
+
+ !!! Warning !!!
+Bad matches found. Computation will continue, but be cautious.
+Matching the periodic boundary points for marker pair 2.
+
+   Bad match for point 12.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 25.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 194.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 181.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 38.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 207.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 51.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 220.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 64.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 233.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 77.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 246.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 90.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 259.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 103.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 272.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 116.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 285.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 129.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 298.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 142.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 311.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 155.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 324.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 168.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 337.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 363.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 350.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 376.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 389.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 402.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 415.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 428.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 441.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 454.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 467.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 480.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 493.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 506.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 532.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 519.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 545.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 558.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 571.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 584.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 597.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 610.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 623.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 636.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 649.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 662.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 675.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 701.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 688.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 714.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 727.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 740.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 753.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 766.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 779.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 792.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 805.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 818.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 831.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 844.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 870.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 857.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 883.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 896.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 909.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 922.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 935.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 948.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 961.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 974.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 987.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 1000.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 1013.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 1039.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 1026.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 1052.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 1065.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 1078.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 1091.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 1104.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 1117.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 1130.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 1143.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 1156.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 1169.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 1182.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 1208.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 1195.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 1221.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 1234.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 1247.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 1260.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 1273.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 1286.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 1299.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 1312.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 1325.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 1338.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 1351.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 1377.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 1364.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 1390.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 1403.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 1416.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 1429.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 1442.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 1455.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 1468.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 1481.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 1494.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 1507.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 1520.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 1546.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 1533.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 1559.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 1572.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 1585.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 1598.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 1611.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 1624.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 1637.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 1650.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 1663.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 1676.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 1689.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 1715.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 1702.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 1728.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 1741.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 1754.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 1767.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 1780.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 1793.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 1806.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 1819.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 1832.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 1845.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 1858.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 1884.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 1871.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 1897.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 1910.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 1923.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 1936.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 1949.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 1962.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 1975.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 1988.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 2001.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 2014.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 2027.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 2053.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 2040.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 2066.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 2079.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 2092.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 2105.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 2118.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 2131.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 2144.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 2157.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 2170.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 2183.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 2196.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 2222.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 2209.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 2235.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 2248.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 2261.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 2274.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 2287.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 2300.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 2313.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 2326.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 2339.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 2352.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 2365.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 2391.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 2378.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 2404.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 2417.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 2430.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 2443.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 2456.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 2469.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 2482.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 2495.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 2508.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 2521.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 2534.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 2560.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 2547.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 2573.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 2586.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 2599.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 2612.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 2625.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 2638.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 2651.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 2664.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 2677.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 2690.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 2703.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 2729.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 2716.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 2742.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 2755.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 2768.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 2781.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 2794.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 2807.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 2820.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 2833.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 2846.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 2859.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 2872.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 2898.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 2885.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 2911.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 2924.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 2937.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 2950.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 2963.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 2976.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 2989.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 3002.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 3015.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 3028.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 3041.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 3067.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 3054.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 3080.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 3093.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 3106.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 3119.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 3132.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 3145.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 3158.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 3171.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 3184.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 3197.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 3210.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 3236.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 3223.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 3249.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 3262.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 3275.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 3288.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 3301.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 3314.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 3327.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 3340.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 3353.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 3366.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 3379.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 3405.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 3392.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 3418.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 3431.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 3444.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 3457.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 3470.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 3483.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 3496.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 3509.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 3522.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 3535.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 3548.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 3574.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 3561.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 3587.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 3600.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 3613.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 3626.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 3639.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 3652.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 3665.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 3678.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 3691.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 3704.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 3717.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 3743.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 3730.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 3756.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 3769.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 3782.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 3795.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 3808.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 3821.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 3834.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 3847.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 3860.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 3873.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 3886.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 3912.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 3899.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 3925.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 3938.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 3951.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 3964.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 3977.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 3990.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 4003.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 4016.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 4029.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 4042.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 4055.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 4081.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 4068.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 4094.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 4107.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 4120.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 4133.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 4146.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 4159.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 4172.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 4185.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 4198.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 4211.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 4224.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 4250.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 4237.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 4263.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 4276.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 4289.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 4302.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 4315.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 4328.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 4341.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 4354.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 4367.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 4380.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 4393.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 4419.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 4406.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 4432.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 4445.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 4458.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 4471.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 4484.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 4497.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 4510.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 4523.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 4536.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 4549.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 4562.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 4588.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 4575.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 4601.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 4614.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 4627.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 4640.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 4653.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 4666.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 4679.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 4692.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 4705.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 4718.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 4731.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 4757.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 4744.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 4770.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 4783.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 4796.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 4809.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 4822.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 4835.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 4848.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 4861.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 4874.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 4887.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 4900.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 4926.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 4913.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 4939.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 4952.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 4965.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 4978.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 4991.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 5004.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 5017.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 5030.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 5043.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 5056.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 5069.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 5095.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 5082.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 5108.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 5121.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 5134.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 5147.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 5160.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 5173.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 5186.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 5199.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 5212.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 5225.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 5238.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 5264.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 5251.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 5277.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 5290.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 5303.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 5316.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 5329.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 5342.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 5355.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 5368.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 5381.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 5394.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 5407.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 5433.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 5420.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 5446.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 5459.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 5472.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 5485.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 5498.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 5511.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 5524.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 5537.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 5550.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 5563.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 5576.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 5602.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 5589.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 5615.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 5628.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 5641.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 5654.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 5667.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 5680.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 5693.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 5706.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 5719.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 5732.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 5745.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 5771.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 5758.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 5784.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 5797.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 5810.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 5823.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 5836.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 5849.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 5862.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 5875.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 5888.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 5901.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 5914.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 5940.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 5927.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 5953.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 5966.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 5979.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 5992.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 6005.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 6018.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 6031.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 6044.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 6057.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 6070.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 6083.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 6109.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 6096.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 6122.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 6135.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 6148.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 6161.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 6174.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 6187.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 6200.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 6213.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 6226.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 6239.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 6252.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 6278.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 6265.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 6291.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 6304.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 6317.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 6330.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 6343.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 6356.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 6369.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 6382.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 6395.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 6408.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 6421.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 6447.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 6434.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 6460.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 6473.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 6486.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 6499.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 6512.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 6525.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 6538.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 6551.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 6564.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 6577.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 6590.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 6616.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 6603.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 6629.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 6642.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 6655.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 6668.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 6681.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 6694.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 6707.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 6720.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 6733.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 6746.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 6759.	Nearest donor distance: 2.9712933722e-02.
+   Bad match for point 6785.	Nearest donor distance: 1.2302372910e-02.
+   Bad match for point 6772.	Nearest donor distance: 1.1320118870e-02.
+   Bad match for point 6798.	Nearest donor distance: 1.3655234060e-02.
+   Bad match for point 6811.	Nearest donor distance: 1.5229369826e-02.
+   Bad match for point 6824.	Nearest donor distance: 1.6829773458e-02.
+   Bad match for point 6837.	Nearest donor distance: 1.8455689264e-02.
+   Bad match for point 6850.	Nearest donor distance: 2.0062293641e-02.
+   Bad match for point 6863.	Nearest donor distance: 2.1655536246e-02.
+   Bad match for point 6876.	Nearest donor distance: 2.3269991327e-02.
+   Bad match for point 6889.	Nearest donor distance: 2.4895592545e-02.
+   Bad match for point 6902.	Nearest donor distance: 2.6484263388e-02.
+   Bad match for point 6915.	Nearest donor distance: 2.8091021833e-02.
+   Bad match for point 6928.	Nearest donor distance: 2.9712933722e-02. Matched 533 points with a max distance of: 0.0000000000e+00.
+
+
+ !!! Warning !!!
+Bad matches found. Computation will continue, but be cautious.
+Computing wall distances.
+
+-------------------- Solver Preprocessing ( Zone 0 ) --------------------
+Inviscid flow: Computing density based on free-stream
+temperature and pressure using the ideal gas law.
+Force coefficients computed using MACH_MOTION.
+
+-- Models:
++------------------------------------------------------------------------------+
+|          Viscosity Model|        Conductivity Model|              Fluid Model|
++------------------------------------------------------------------------------+
+|                        -|                         -|                IDEAL_GAS|
++------------------------------------------------------------------------------+
+-- Fluid properties:
++------------------------------------------------------------------------------+
+|                  Name|    Dim. value|    Ref. value|      Unit|Non-dim. value|
++------------------------------------------------------------------------------+
+|          Gas Constant|       287.058|             1|  N.m/kg.K|       287.058|
+|      Spec. Heat Ratio|             -|             -|         -|           1.4|
++------------------------------------------------------------------------------+
+-- Initial and free-stream conditions:
++------------------------------------------------------------------------------+
+|                  Name|    Dim. value|    Ref. value|      Unit|Non-dim. value|
++------------------------------------------------------------------------------+
+|       Static Pressure|       99298.5|             1|        Pa|       99298.5|
+|               Density|       1.20048|             1|    kg/m^3|       1.20048|
+|           Temperature|        288.15|             1|         K|        288.15|
+|          Total Energy|        212000|             1|   m^2/s^2|        212000|
+|            Velocity-X|       102.089|             1|       m/s|       102.089|
+|            Velocity-Y|             0|             1|       m/s|             0|
+|            Velocity-Z|             0|             1|       m/s|             0|
+|    Velocity Magnitude|       102.089|             1|       m/s|       102.089|
++------------------------------------------------------------------------------+
+|           Mach Number|             -|             -|         -|           0.3|
++------------------------------------------------------------------------------+
+WARNING: On 1 MPI ranks the coloring efficiency was less than 8.750000e-01 (min value was 7.955729e-01).
+         Those ranks will now use a fallback strategy, better performance may be possible
+         with a different value of config option EDGE_COLORING_GROUP_SIZE (default 512).
+Initialize Jacobian structure (Euler). MG level: 0.
+
+WARNING: The restart file does not contain grid velocities, these will be set to zero.
+
+
+------------------- Numerics Preprocessing ( Zone 0 ) -------------------
+
+----------------- Integration Preprocessing ( Zone 0 ) ------------------
+
+------------------- Iteration Preprocessing ( Zone 0 ) ------------------
+Euler/Navier-Stokes/RANS fluid iteration.
+Setting dynamic mesh structure for zone 1.
+
+------------------------------ Begin Solver -----------------------------
+
+Simulation Run using the Single-zone Driver
+
+ Setting rotating frame grid velocities.
+ Rotational origin (x, y, z): ( 0.000000e+00, 0.000000e+00, 0.000000e+00 )
+ Angular velocity about x, y, z axes: ( -2.000000e+03, 0.000000e+00, 0.000000e+00 ) rad/s
+ Translational velocity in x, y, z direction: (0.000000e+00, 0.000000e+00, 0.000000e+00).
++-------------------------+
+|  Inner_Iter|    rms[Rho]|
++-------------------------+
+|           0|   -3.861447|
+|         100|    0.655735|
+|         200|    4.507110|
+|         299|    7.430339|
+
+----------------------------- Solver Exit -------------------------------
+
+Maximum number of iterations reached (ITER = 300) before convergence.
++-----------------------------------------------------------------------+
+|      Convergence Field     |     Value    |   Criterion  |  Converged |
++-----------------------------------------------------------------------+
+|                    rms[Rho]|       7.43034|          < -8|          No|
++-----------------------------------------------------------------------+
+-------------------------------------------------------------------------
++-----------------------------------------------------------------------+
+|        File Writing Summary       |              Filename             |
++-----------------------------------------------------------------------+
+|SU2 ASCII restart                  |restart_rotboxper2.csv             |
++-----------------------------------------------------------------------+
+Warning: there are 1854 non-physical points in the solution.
+Warning: 9 reconstructed states for upwinding are non-physical.
+
+--------------------------- Finalizing Solver ---------------------------
+Deleted CNumerics container.
+Deleted CIntegration container.
+Deleted CSolver container.
+Deleted CIteration container.
+Deleted CInterface container.
+Deleted CGeometry container.
+Deleted CFreeFormDefBox class.
+Deleted CSurfaceMovement class.
+Deleted CVolumetricMovement class.
+Deleted CConfig container.
+Deleted nInst container.
+Deleted COutput class.
+-------------------------------------------------------------------------
+
+------------------------- Exit Success (SU2_CFD) ------------------------
+

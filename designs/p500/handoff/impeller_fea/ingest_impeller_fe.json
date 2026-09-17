@@ -1,0 +1,10 @@
+[
+ {
+  "stage": "mechanical",
+  "tier": "L3",
+  "source": "CalculiX 2.21 axisymmetric CAX4 impeller hub, 7921 elements, blades as smeared traction, 2026-09-16T21:32:05+00:00; peak >= 1 mm from re-entrant corners",
+  "fields": {
+   "impeller.sigma_peak_Pa": 738527191.8898699
+  }
+ }
+]

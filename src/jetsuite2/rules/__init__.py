@@ -57,6 +57,8 @@ def format_rules(rules: list[dict], only_problems: bool = False) -> str:
         sym = {"pass": "ok  ", "warn": "WARN", "fail": "FAIL", "info": "info"}[r["verdict"]]
         rel = {"max": "<=", "min": ">=", "info": "  "}[r["kind"]]
         lines.append(f"  {sym} {r['id']:<10} {r['name']:<44} {val:>10} {rel} {lim:<10} {r['unit']:<6} {mrg:>9}  [{r['source']}]")
+        if r.get("band_statement"):
+            lines.append(f"       with band: {r['band_statement']}")
         if r.get("note") and r["verdict"] in ("warn", "fail"):
             lines.append(f"       -> {r['note']}")
     return "\n".join(lines)

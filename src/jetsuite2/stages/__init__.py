@@ -21,12 +21,12 @@ import importlib
 from ..state import Stage, StageGraph
 
 CORE_MODULES = ["requirements", "cycle", "speed", "compressor", "turbine", "combustor", "layout",
-                "rotor", "mechanical", "geometry"]
-ANALYSIS_MODULES = ["assess", "combustor1d", "maps", "offdesign", "envelope", "transient", "life", "rotordyn",
+                "rotor", "mechanical", "geometry", "control"]
+ANALYSIS_MODULES = ["assess", "throughflow", "combustor1d", "maps", "offdesign", "envelope", "transient", "thermal", "life", "rotordyn",
                     "manufacturing", "testbench"]
 
 DEFAULT_TIERS = {"requirements": "L0", "cycle": "L1", "speed": "L1", "compressor": "L1", "turbine": "L1",
-                 "combustor": "L1", "layout": "L0", "rotor": "L2", "mechanical": "L1", "geometry": "L0"}
+                 "combustor": "L1", "layout": "L0", "rotor": "L2", "mechanical": "L1", "geometry": "L0", "control": "L1"}
 
 
 def _load(name: str):

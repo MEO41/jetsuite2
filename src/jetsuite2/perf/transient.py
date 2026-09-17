@@ -78,17 +78,17 @@ class LowSpeedMap:
         self.cmap = cmap
         self.N_min = float(cmap.N.min())
 
-    def point(self, N_frac, beta):
+    def point(self, N_frac, beta, igv=0.0):
         if N_frac >= self.N_min:
-            return self.cmap.point(N_frac, beta)
-        w, pr, eta = self.cmap.point(self.N_min, beta)
+            return self.cmap.point(N_frac, beta, igv)
+        w, pr, eta = self.cmap.point(self.N_min, beta, igv)
         s = max(N_frac / self.N_min, 0.02)
         return w * s, 1.0 + (pr - 1.0) * s * s, max(eta * (0.5 + 0.5 * s), 0.3)
 
-    def surge_margin(self, N_frac, W_corr, PR):
+    def surge_margin(self, N_frac, W_corr, PR, igv=0.0):
         if N_frac >= self.N_min:
-            return self.cmap.surge_margin(N_frac, W_corr, PR)
-        w0, pr0, _ = self.point(N_frac, 0.0)
+            return self.cmap.surge_margin(N_frac, W_corr, PR, igv)
+        w0, pr0, _ = self.point(N_frac, 0.0, igv)
         return (pr0 * W_corr) / (PR * w0) - 1.0
 
     @property
@@ -104,19 +104,36 @@ def steady_schedule(E: matching.EngineModel, amb, N_fracs) -> dict:
                 T04=[p["T04"] for p in ok], Wf=[p["Wf"] for p in ok], x=[p["x"] for p in ok])
 
 
+def controller_from_schedules(sch) -> Control:
+    """Control object (limiter constants) from the control-stage schedules."""
+    return Control(accel_limit=float(sch.accel(1.0)), decel_limit=float(sch.decel(1.0)), T04_limit=sch.T04_limit,
+                   N_max_frac=sch.N_max_frac, idle_frac=sch.idle_N, fuel_ramp_s=sch.fuel_lag, light_off_N_frac=sch.light_off_N,
+                   starter_torque_Nm=sch.starter_torque, starter_cutoff_frac=sch.starter_cutoff_N, self_sustain_frac=0.22)
+
+
 def simulate(E: matching.EngineModel, amb, ctrl: Control, schedule: dict, N0_frac: float, target_frac,
              t_end: float, dt: float = 0.01, starter: bool = False, fuel_on: bool = True, governor_fail: bool = False,
-             x0=None) -> dict:
+             x0=None, p3_sensor_lost: bool = False, accel_derate: float = 1.0) -> dict:
     """Integrate the rotor from N0 toward target_frac (a number or a function of time).
 
-    Returns time histories and events.  Everything is at fixed ambient conditions."""
+    The fuel command runs through the controller: proportional governor on speed error,
+    clipped between the deceleration and acceleration limit lines of the control stage
+    (functions of corrected speed), a start ramp, the T04 topping limiter and the
+    overspeed trip.  Bleed, nozzle area and IGV follow their schedules inside
+    ``matching.evaluate``.  Everything is at fixed ambient conditions."""
     cmap_ext = LowSpeedMap(E.cmap)
     E_ext = matching.EngineModel(**{**E.__dict__, "cmap": cmap_ext})
+    sch = E.sched if E.sched is not None else None
     Ns, WfP3s = np.array(schedule["N"]), np.array(schedule["WfP3"])
+    # steady P3 vs N (the ECU's N-only fallback when the P3 sensor is lost): Wf / (Wf/P3) from the schedule
+    P3s = np.array([wf / max(wp, 1e-12) for wf, wp in zip(schedule.get("Wf", []), schedule["WfP3"])]) if schedule.get("Wf") else None
+    ramp_level = 0.0   # start ramp: fraction of the accel line reached so far
+    held_prev = False  # previous step held an unconverged state
+    x_lim_prev = None  # warm start for the T04-ceiling solve
     N = N0_frac * E.N_design
     Wf_cmd_lag = 0.0
     t = 0.0
-    hist = dict(t=[], N_frac=[], T04=[], EGT=[], Wf=[], Fn=[], SM=[], P3=[], W=[], T_metal=[], P_excess=[])
+    hist = dict(t=[], N_frac=[], T04=[], EGT=[], Wf=[], Fn=[], SM=[], P3=[], W=[], T_metal=[], P_excess=[], lim=[])
     events = {}
     lit = fuel_on and N0_frac >= ctrl.light_off_N_frac
     T_metal = amb.T0
@@ -127,11 +144,18 @@ def simulate(E: matching.EngineModel, amb, ctrl: Control, schedule: dict, N0_fra
         Nf = N / E.N_design
         # ---- control law: fuel command from the target speed with accel / decel limiters
         WfP3_ss = float(np.interp(Nf, Ns, WfP3s))
-        # proportional governor on speed error, expressed as a Wf/P3 multiplier
+        # proportional governor on speed error, expressed as a Wf/P3 multiplier, clipped by the limit lines
         err = tf - Nf
-        k_gov = 8.0
+        k_gov = sch.gain if sch is not None else 8.0
+        acc_lim = (sch.accel(Nf) if sch is not None else ctrl.accel_limit)
+        acc_lim = 1.0 + (acc_lim - 1.0) * accel_derate                 # sensor-loss derate of the accel line
+        dec_lim = sch.decel(Nf) if sch is not None else ctrl.decel_limit
         mult = 1.0 + k_gov * err
-        mult = min(max(mult, ctrl.decel_limit), ctrl.accel_limit)
+        mult = min(max(mult, dec_lim), acc_lim)
+        if starter and lit and sch is not None and ramp_level < 1.0:
+            # start ramp: the command rises toward the accel line at the scheduled rate
+            ramp_level = min(ramp_level + sch.start_ramp_rate * dt, 1.0)
+            mult = min(mult, max(dec_lim, ramp_level * acc_lim))
         if governor_fail:
             mult = ctrl.accel_limit
             # independent overspeed trip: fuel cut 0.1 s after N exceeds 1.10 x design
@@ -150,26 +174,63 @@ def simulate(E: matching.EngineModel, amb, ctrl: Control, schedule: dict, N0_fra
         if lit:
             # need P3: use the last solved point if available
             P3_prev = hist["P3"][-1] if hist["P3"] else amb.P0 * (1.0 + 0.5 * Nf)
+            if p3_sensor_lost and P3s is not None and len(P3s):
+                P3_prev = float(np.interp(Nf, Ns, P3s))                 # ECU fallback: scheduled P3, not the measured one
             Wf_cmd = mult * WfP3_ss * P3_prev
         Wf_cmd_lag += (Wf_cmd - Wf_cmd_lag) * min(dt / ctrl.fuel_ramp_s, 1.0)
         Wf = max(Wf_cmd_lag, 1e-5)
         # ---- quasi-steady components at (N, Wf)
+        lim_state = 0     # 0 none, 1 fuel capped by the T04 loop, 2 fallback command cut, 3 held (unconverged)
         if lit and Wf > 1e-4:
-            r = _lowspeed_point(E_ext, amb, N, Wf, x)
-            if r["converged"]:
-                x = r["x"]
-            elif r_prev is not None and hist["T04"] and hist["T04"][-1] > amb.T0 + 100:
-                # unconverged quasi-steady solve: hold the last converged state for this step
-                r = dict(r_prev)
-            # T04 limiter: if over limit, reduce fuel to the limit (one re-solve; fallback: cut the command)
-            if r["T04"] > ctrl.T04_limit and not governor_fail:
-                r2 = matching.solve_point(E_ext, amb, N, T04=ctrl.T04_limit, x0=x)
-                if r2["converged"]:
-                    r = r2
-                    Wf = r["Wf"]
-                    Wf_cmd_lag = Wf
+            # ---- T04 topping limiter as a fuel ceiling on the command (the T04 loop has authority every step,
+            # including while the fuel-driven solve is in the unconverged low-speed region)
+            r_lim = None
+            r_try = None
+            # ceiling first, warm-started from the previous step's ceiling solution (a few Newton steps); the residual
+            # scan only when the warm start fails.  Its x also seeds the fuel-driven solve, which is what keeps the
+            # fuel-driven solve cheap in the start region.
+            # the ceiling cannot bind within one step when the last converged point sits more than 15 % below the limit
+            # (fuel lag 0.3 s vs dt) and the command is not at the accel line; skip the solve there
+            far_below = (r_prev is not None and not held_prev and r_prev.get("T04", 0.0) < 0.85 * ctrl.T04_limit and mult < 0.999 * acc_lim)
+            if not governor_fail and not far_below:
+                x0_lim = [x_lim_prev[0], x_lim_prev[1], ctrl.T04_limit] if x_lim_prev is not None else [x[0], x[1], ctrl.T04_limit]
+                r_lim = matching.solve_point(E_ext, amb, N, T04=ctrl.T04_limit, x0=x0_lim)
+                if not r_lim["converged"]:
+                    r_lim = matching.solve_point(E_ext, amb, N, T04=ctrl.T04_limit, x0=[x[0], x[1], ctrl.T04_limit], scan=True)
+                if r_lim["converged"]:
+                    x_lim_prev = r_lim["x"]
                 else:
+                    r_lim = None
+            if r_lim is not None and Wf >= r_lim["Wf"]:
+                r = r_lim
+                Wf = r["Wf"]
+                Wf_cmd_lag = Wf                      # anti-windup: the command cannot exceed the ceiling
+                x = r["x"]
+                lim_state = 1
+            else:
+                # the limit solution (same N, higher T04) is the best neighbour for the fuel-driven solve
+                if r_try is not None and r_try["converged"] and r_lim is None:
+                    r = r_try                                     # already solved, below the limiter's reach
+                else:
+                    r = _lowspeed_point(E_ext, amb, N, Wf, [r_lim["x"][0], r_lim["x"][1], x[2]] if r_lim is not None else x)
+                if not r["converged"] and len(schedule.get("x", [])) > 0:
+                    # retry from the steady-schedule state nearest this speed (the held x may be stale)
+                    j = int(np.argmin(np.abs(Ns - Nf)))
+                    r_try = _lowspeed_point(E_ext, amb, N, Wf, list(schedule["x"][j]))
+                    if r_try["converged"]:
+                        r = r_try
+                if r["converged"]:
+                    x = r["x"]
+                elif r_prev is not None and hist["T04"] and hist["T04"][-1] > amb.T0 + 100:
+                    # unconverged quasi-steady solve: hold the last converged state for this step and freeze the
+                    # command at the held fuel (no wind-up while the model cannot follow)
+                    r = dict(r_prev)
+                    Wf_cmd_lag = min(Wf_cmd_lag, r["Wf"] * 1.05)
+                    lim_state = 3
+                # a-posteriori guard (governor-failure case has no limiter): cut the command if still over the limit
+                if r["T04"] > ctrl.T04_limit and not governor_fail:
                     Wf_cmd_lag *= max(0.7, 1.0 - 2.0 * (r["T04"] - ctrl.T04_limit) / ctrl.T04_limit)
+                    lim_state = 2
         else:
             # motoring: no combustion, compressor driven by the starter only
             r = matching.evaluate(E_ext, amb, N, 0.5, 1.2, max(amb.T0 + 40.0, 1.0))
@@ -190,6 +251,8 @@ def simulate(E: matching.EngineModel, amb, ctrl: Control, schedule: dict, N0_fra
         hist["t"].append(t); hist["N_frac"].append(N / E.N_design); hist["T04"].append(r["T04"]); hist["EGT"].append(r["EGT"])
         hist["Wf"].append(r["Wf"]); hist["Fn"].append(r["Fn"]); hist["SM"].append(r.get("SM", float("nan")))
         hist["P3"].append(r["Pt3"]); hist["W"].append(r["W"]); hist["T_metal"].append(T_metal); hist["P_excess"].append(P_excess)
+        hist["lim"].append(lim_state if lit else -1)
+        held_prev = lit and lim_state == 3
         if "self_sustain_s" not in events and lit and P_start == 0.0 and P_excess > 0 and Nf >= ctrl.self_sustain_frac:
             events["self_sustain_s"] = t
         t += dt

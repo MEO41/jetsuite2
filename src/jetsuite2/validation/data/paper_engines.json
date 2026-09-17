@@ -1,0 +1,44 @@
+{
+  "_doc": "Published commercial micro-turbojets modelled 'as if they were our designs' (ROADMAP section 2, paper correlation). Each entry: the datasheet operating points (idle and max, sea-level ISA unless stated), the published dimensions and mass, and the design assumptions the suite needs to build the engine (thrust, OPR, rpm; T04 is not published and is left at the suite default, so EGT is a genuine prediction). Fuel densities: kerosene / Jet A-1 0.80 kg/l where the datasheet gives ml/min. Tolerances are the acceptance bands for `jet validate paper`.",
+  "fuel_density_kg_per_l": 0.80,
+  "engines": [
+    {
+      "name": "JetCat P300-PRO",
+      "source": "jetcat.de P300-PRO product page, technical data table (accessed 2026-09-16): idle 35,000 rpm / 14 N / 179 ml/min; max 105,000 rpm / 300 N / 980 ml/min; EGT 480-750 C; mass flow 0.5 kg/s; PR 3.55 (fleet database); 2730 g; D 132 mm; L 380.5 mm; SFC 0.157 kg/Nh",
+      "source_url": "https://www.jetcat.de/en/productdetails/produkte/jetcat/produkte/Professionell/p300%20pro",
+      "design": {"thrust_N": 300.0, "OPR": 3.55, "rpm": 105000.0},
+      "points": [
+        {"name": "max", "N_rpm": 105000.0, "thrust_N": 300.0, "Wf_kg_h": 47.04, "EGT_K": 1023.15, "W_kg_s": 0.50},
+        {"name": "idle", "N_rpm": 35000.0, "thrust_N": 14.0, "Wf_kg_h": 8.59}
+      ],
+      "published": {"diameter_mm": 132.0, "length_mm": 380.5, "mass_kg": 2.73, "mass_note": "engine incl. integrated pump/valves/ECU hood; suite mass is the bare engine"},
+      "notes": "EGT quoted as a 480-750 C operating band; the max point uses 750 C (1023 K) with a 60 K tolerance."
+    },
+    {
+      "name": "AMT Netherlands Olympus HP (E-start)",
+      "source": "AMT Netherlands 'Olympus HP gas-turbine' datasheet, June 2009 (jettech.ch mirror, page 1): 230 N @ 108,500 rpm; 13 N @ 36,000 rpm idle; PR 3.8; mass flow 450 g/s; normal EGT 700 C, max 750 C; 640 g/min at max; D 131 mm; L 384 mm; 2850 g",
+      "source_url": "http://www.jettech.ch/12-Triebwerke/12-2-Technische%20Beschriebe/AMT---Olympus-HP.pdf",
+      "design": {"thrust_N": 230.0, "OPR": 3.8, "rpm": 108500.0},
+      "points": [
+        {"name": "max", "N_rpm": 108500.0, "thrust_N": 230.0, "Wf_kg_h": 38.4, "EGT_K": 973.15, "W_kg_s": 0.45},
+        {"name": "idle", "N_rpm": 36000.0, "thrust_N": 13.0}
+      ],
+      "published": {"diameter_mm": 131.0, "length_mm": 384.0, "mass_kg": 2.85, "mass_note": "turbine weight, E-start version"},
+      "notes": "Idle fuel flow not published. Normal EGT 700 C used for the max point."
+    },
+    {
+      "name": "JetCat P400-PRO-LN",
+      "source": "jetcat.de P400-PRO-LN product page, technical data table (accessed 2026-09-16): idle 30,000 rpm / 14 N / 200 ml/min; max 98,000 rpm / 425 N / 1392 ml/min; EGT 480-750 C; mass flow 0.67 kg/s; PR 3.8; 4010 g; D 148.4 mm; L 390 mm; SFC 0.157 kg/Nh",
+      "source_url": "https://www.jetcat.de/en/productdetails/produkte/jetcat/produkte/Professionell/p400%20pro",
+      "design": {"thrust_N": 425.0, "OPR": 3.8, "rpm": 98000.0},
+      "points": [
+        {"name": "max", "N_rpm": 98000.0, "thrust_N": 425.0, "Wf_kg_h": 66.8, "EGT_K": 1023.15, "W_kg_s": 0.67},
+        {"name": "idle", "N_rpm": 30000.0, "thrust_N": 14.0, "Wf_kg_h": 9.6}
+      ],
+      "published": {"diameter_mm": 148.4, "length_mm": 390.0, "mass_kg": 4.01, "mass_note": "engine incl. integrated pump/valves/ECU hood"},
+      "notes": ""
+    }
+  ],
+  "tolerances": {"thrust_N": 0.10, "Wf_kg_h": 0.15, "EGT_K": 60.0, "W_kg_s": 0.15, "diameter_mm": 0.12, "length_mm": 0.20, "mass_kg": 0.30},
+  "tolerance_doc": "relative unless the quantity is EGT_K (absolute K). Length and mass carry wide bands because the datasheets include starter/hood/pump/ECU that the suite's bare-engine geometry does not."
+}

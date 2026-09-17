@@ -155,29 +155,116 @@ class StageGraph:
                 store.stamps.pop(n, None)
                 continue
             dt = time.perf_counter() - t0
-            rules = out.pop("_rules", None)
-            # ingested higher-tier results replace the stage's own values (provenance recorded)
-            prov = {}
-            for fld, ov in (store.doc.get("overrides", {}).get(n, {}) or {}).items():
-                if ov.get("value") is None:
-                    continue
-                set_path(out, fld, ov["value"])      # dotted fields address nested outputs (e.g. impeller.sigma_peak_Pa)
-                prov[fld] = {"tier": ov.get("tier", "L3"), "source": ov.get("source", ""), "at": ov.get("at", "")}
-            out["_provenance"] = prov
-            store.outputs[n] = out
-            if rules is not None:
-                for r in rules:
-                    r.setdefault("tier", st.tier)
-                store.doc.setdefault("rules", {})[n] = rules
-            store.stamps[n] = {"inputs_hash": h, "outputs_hash": canonical_hash(out),
-                               "at": time.strftime("%Y-%m-%dT%H:%M:%S"), "elapsed_s": round(dt, 4),
-                               "tier": st.tier, "overridden": sorted(prov)}
-            rep.ran.append(n)
-            rep.timings[n] = dt
-            rep.changes[n] = _diff_flat(old, out)
+            self._finish(store, n, out, h, dt, old, rep)
             if upto == n:
                 break
         return rep
+
+    def _finish(self, store: DesignStore, n: str, out: dict, h: str, dt: float, old: dict, rep: RunReport) -> None:
+        """Store a stage's outputs: apply ingested overrides, record provenance, rules, stamp and the change list."""
+        st = self.stages[n]
+        rules = out.pop("_rules", None)
+        # ingested higher-tier results replace the stage's own values (provenance recorded)
+        prov = {}
+        for fld, ov in (store.doc.get("overrides", {}).get(n, {}) or {}).items():
+            if ov.get("value") is None:
+                continue
+            set_path(out, fld, ov["value"])      # dotted fields address nested outputs (e.g. impeller.sigma_peak_Pa)
+            prov[fld] = {"tier": ov.get("tier", "L3"), "source": ov.get("source", ""), "at": ov.get("at", "")}
+        out["_provenance"] = prov
+        store.outputs[n] = out
+        if rules is not None:
+            for r in rules:
+                r.setdefault("tier", st.tier)
+            store.doc.setdefault("rules", {})[n] = rules
+        store.stamps[n] = {"inputs_hash": h, "outputs_hash": canonical_hash(out),
+                           "at": time.strftime("%Y-%m-%dT%H:%M:%S"), "elapsed_s": round(dt, 4),
+                           "tier": st.tier, "overridden": sorted(prov)}
+        rep.ran.append(n)
+        rep.timings[n] = dt
+        rep.changes[n] = _diff_flat(old, out)
+
+    def run_parallel(self, store: DesignStore, only: list[str], force: bool = False,
+                     verbose: Callable[[str], None] | None = None, workers: int = 4) -> RunReport:
+        """Run the named analysis stages in dependency waves; the stages of a wave run concurrently in processes
+        (each stage is a pure function of the design document).  Falls back to the serial runner if the pool
+        cannot start."""
+        rep = RunReport()
+        pending = []
+        for n in self.order:
+            if n not in only:
+                continue
+            st = self.stages[n]
+            h = st.input_hash(store.doc)
+            stamp = store.stamps.get(n)
+            if not force and stamp and stamp.get("inputs_hash") == h:
+                rep.skipped.append(n)
+                continue
+            pending.append(n)
+        if not pending:
+            return rep
+        try:
+            from concurrent.futures import ProcessPoolExecutor
+            import os
+            pool = ProcessPoolExecutor(max_workers=max(1, min(workers, os.cpu_count() or 1)))
+        except Exception:  # noqa: BLE001
+            pool = None
+        done: set[str] = set()
+        try:
+            while pending:
+                # a wave: pending stages whose pending upstreams are all done (hash is taken at launch: the wave's
+                # inputs are the outputs of the previous waves, which are already in the store)
+                wave = [n for n in pending if not any(u in pending and u not in done for u in self.stages[n].upstream())]
+                if not wave:
+                    for n in pending:
+                        rep.failed[n] = "blocked: cyclic or failed upstream"
+                    break
+                blocked = [n for n in wave if any(u in rep.failed for u in self.stages[n].upstream())]
+                for n in blocked:
+                    rep.failed[n] = "blocked by failed upstream: " + ", ".join(u for u in self.stages[n].upstream() if u in rep.failed)
+                    pending.remove(n)
+                wave = [n for n in wave if n not in blocked]
+                if not wave:
+                    continue
+                if verbose:
+                    verbose("running " + ", ".join(wave) + (" (parallel)" if len(wave) > 1 and pool else "") + " ...")
+                hashes = {n: self.stages[n].input_hash(store.doc) for n in wave}
+                olds = {n: store.outputs.get(n, {}) for n in wave}
+                t0 = {n: time.perf_counter() for n in wave}
+                results = {}
+                if pool is not None and len(wave) > 1:
+                    futs = {n: pool.submit(_run_stage_in_worker, n, store.doc) for n in wave}
+                    for n, f in futs.items():
+                        try:
+                            results[n] = (f.result(), None)
+                        except Exception as e:  # noqa: BLE001
+                            results[n] = (None, f"{type(e).__name__}: {e}")
+                else:
+                    for n in wave:
+                        try:
+                            results[n] = (self.stages[n].run(store.doc), None)
+                        except Exception as e:  # noqa: BLE001
+                            results[n] = (None, f"{type(e).__name__}: {e}")
+                for n in wave:
+                    out, err = results[n]
+                    pending.remove(n)
+                    done.add(n)
+                    if err is not None:
+                        rep.failed[n] = err
+                        store.stamps.pop(n, None)
+                        continue
+                    self._finish(store, n, out, hashes[n], time.perf_counter() - t0[n], olds[n], rep)
+        finally:
+            if pool is not None:
+                pool.shutdown(wait=True)
+        return rep
+
+
+def _run_stage_in_worker(name: str, doc: dict) -> dict:
+    """Process-pool entry: run one stage module on a copy of the document (module-level for pickling)."""
+    import importlib
+    mod = importlib.import_module(f"jetsuite2.stages.{name}")
+    return mod.run(doc)
 
 
 def _diff_flat(a: dict, b: dict) -> list[tuple[str, object, object]]:

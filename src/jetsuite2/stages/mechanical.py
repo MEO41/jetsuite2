@@ -107,6 +107,19 @@ def run(doc: dict) -> dict:
     t_bored = str(m("turbine_mount")).lower() == "bore"
     sig_avg_t, sig_peak_t, A_t = disc_stresses(rr["turbine_disc_profile"], rho_t, om, rr["m_turbine_blades_kg"],
                                                0.5 * (t["r_hub_rotor_m"] + t["r_tip_rotor_m"]), t_bored, kb, kbb)
+    # ingested L3 disc stresses (FE) replace the L1 disc-factor values *before* the rules are evaluated, so the
+    # verdicts are on the higher-tier number (the graph re-applies the same overrides to the outputs afterwards)
+    ov = doc.get("overrides", {}).get("mechanical", {}) or {}
+    stress_src_c = f"L1 disc factor k_peak {kbb if bored else kb}"
+    if ov.get("impeller.sigma_peak_Pa", {}).get("value"):
+        sig_peak_c = float(ov["impeller.sigma_peak_Pa"]["value"])
+        stress_src_c = f"{ov['impeller.sigma_peak_Pa'].get('tier', 'L3')} FE ({ov['impeller.sigma_peak_Pa'].get('source', '')[:40]})"
+    stress_src_t = f"L1 disc factor k_peak {kbb if t_bored else kb}"
+    if ov.get("turbine.sigma_peak_Pa", {}).get("value"):
+        sig_peak_t = float(ov["turbine.sigma_peak_Pa"]["value"])
+        stress_src_t = f"{ov['turbine.sigma_peak_Pa'].get('tier', 'L3')} FE ({ov['turbine.sigma_peak_Pa'].get('source', '')[:40]})"
+    if ov.get("turbine.sigma_avg_Pa", {}).get("value"):
+        sig_avg_t = float(ov["turbine.sigma_avg_Pa"]["value"])
     burst_t = math.sqrt(burst_k * ftu_t / sig_avg_t)
     allow_t_bore = materials.allowable_at(mat_t, T_bore)
 
@@ -126,7 +139,7 @@ def run(doc: dict) -> dict:
 
     rules = [
         check("MECH-1", "impeller disc peak stress at MCS vs yield", sig_peak_c / 1e6, fty_c / 1e6, "max",
-              f"{mat_c} min-basis yield at {T_disc:.0f} K; k_peak {kbb if bored else kb}", unit="MPa",
+              f"{mat_c} min-basis yield at {T_disc:.0f} K; stress from {stress_src_c}", unit="MPa",
               note="lower U2 (OPR/backsweep), boreless mount, or a stronger material"),
         check("MECH-2", "impeller burst speed ratio", burst_c, burst_req, "min", "14 CFR 33.27 style; Robinson k 0.85",
               note="reduce average tangential stress: thicker hub, lower U2"),
@@ -135,7 +148,7 @@ def run(doc: dict) -> dict:
               min(c["sigma_root_mcs_Pa"], c["sigma_allow_Pa"]) / 1e6 if c["t_root_m"] < 0.0199 else c["sigma_root_mcs_Pa"] / 1e6,
               c["sigma_allow_Pa"] / 1e6, "max", "compressor.COMP-3", unit="MPa", warn_margin=0.0),
         check("MECH-5", "turbine disc peak stress vs bore allowable", sig_peak_t / 1e6, allow_t_bore / 1e6, "max",
-              f"{mat_t} allowable at bore {T_bore:.0f} K", unit="MPa", note="thicker web/hub, lower rpm"),
+              f"{mat_t} allowable at bore {T_bore:.0f} K; stress from {stress_src_t}", unit="MPa", note="thicker web/hub, lower rpm"),
         check("MECH-6", "turbine disc average stress vs rim creep allowable", sig_avg_t / 1e6, allow_t_rim / 1e6, "max",
               f"{mat_t} allowable at rim {T_rim:.0f} K", unit="MPa"),
         check("MECH-7", "turbine burst speed ratio", burst_t, burst_req, "min", "14 CFR 33.27 style; Robinson k 0.85"),

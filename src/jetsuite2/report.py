@@ -50,8 +50,10 @@ def _uq_section(design) -> list[str]:
 
 def render(design) -> str:
     o = design.outputs()
-    r, c, s, cp, t, cb, lay, ro, me, ge = (o.get(k, {}) for k in CORE)
-    mp, od, env, tr, ass, c1d, life, rd, mfg, tb = (o.get(k, {}) for k in ANALYSIS)
+    r, c, s, cp, t, cb, lay, ro, me, ge = (o.get(k, {}) for k in ("requirements", "cycle", "speed", "compressor", "turbine",
+                                                                  "combustor", "layout", "rotor", "mechanical", "geometry"))
+    mp, od, env, tr, ass, c1d, life, rd, mfg, tb = (o.get(k, {}) for k in ("maps", "offdesign", "envelope", "transient", "assess",
+                                                                            "combustor1d", "life", "rotordyn", "manufacturing", "testbench"))
     L = []
     L.append(f"# {design.doc['name']} - design report (v{design.store.version})\n")
     L.append(f"Overall rule verdict: **{design.verdict()}**. Fidelity tier of every claim is listed per stage at the end; "
@@ -159,6 +161,35 @@ def render(design) -> str:
                  f"Balance G{mfg['balance']['grade']}: {_f(mfg['balance']['U_per_plane_gmm'], 3)} g mm per plane. "
                  f"Impeller ({mfg['impeller_machining']['process']}): min passage {_f(mfg['impeller_machining']['passage_width_min_mm'], 3)} mm, wrap {_f(mfg['impeller_machining']['wrap_deg'], 3)} deg; flags: {'; '.join(mfg['impeller_machining']['flags']) or 'none'}. "
                  f"BOM {len(mfg['bom'])} lines, ~{mfg['cost_EUR']:.0f} EUR, lead {mfg['lead_weeks']} weeks.\n")
+    banded = [r for r in design.rules() if r.get("band_statement")]
+    if banded:
+        L.append("## Surge margins with their uncertainty bands\n")
+        L.append("Every surge-margin verdict is shown as value, band and the arithmetic of the with-band check.  Terms combine by "
+                 "root-sum-square (independent error sources: a rig-fit residual, model-form extrapolations, a dynamics simplification); "
+                 "the dominant term names the datum that would shrink the band.  Declared terms are labelled; only the rig term is derived.\n")
+        L.append("| rule | value | band | terms | value - band | limit | nominal | with band | tier |")
+        L.append("|---|---|---|---|---|---|---|---|---|")
+        for r in banded:
+            terms = "; ".join(f"{k.split(' (')[0]} {v:.3f}{' (declared)' if 'declared' in k else ''}" for k, v in r["band_terms"].items())
+            L.append(f"| {r['id']} {r['name']} | {r['value']:+.3f} | +/-{r['band']:.3f} ({r['band_rule']}) | {terms} | {r['value_minus_band']:+.3f} | "
+                     f"{r['limit']:.3f} | {'pass' if r['value'] >= r['limit'] else 'FAIL'} | {'pass' if r['pass_with_band'] else 'FAIL'} | {r.get('tier', '-')} |")
+        L.append("")
+    if mp.get("compressor_map"):
+        # the map suite is the primary review artifact: regenerate it from the current stamps and embed it
+        try:
+            from . import plots
+            w = plots.plot_all(design)
+            L.append("## Maps and plots\n")
+            ctl = o.get("control", {})
+            en = [k for k, v in dict(bleed=ctl.get("bleed_enabled"), nozzle=ctl.get("nozzle_variable"), IGV=ctl.get("igv_enabled")).items() if v]
+            L.append(f"Schedules in force: {', '.join(en) or 'none (fixed geometry)'}; surge band +/-{mp['compressor_map'].get('surge_band_SM', 0.0):.3f} SM "
+                     f"points (rig-calibrated, see docs/validation.md).  Interactive map: `analysis/plots/compressor_map.html`.\n")
+            L.append("![compressor map](analysis/plots/compressor_map.png)\n")
+            for k in ("turbine", "smith_balje", "campbell"):
+                if isinstance(w.get(k), dict) and w[k].get("png"):
+                    L.append(f"![{k}](analysis/plots/{Path(w[k]['png']).name})\n")
+        except Exception as e:  # plotting must never break the report
+            L.append(f"(plots not generated: {e})\n")
     L.append("## Envelope and mass\n")
     L.append(f"OD {_f(ge.get('envelope_OD_mm'))} mm x length {_f(ge.get('length_mm'))} mm; estimated dry mass {_f(ge.get('mass_total_kg'), 3)} kg.\n")
     if ge.get("mass"):

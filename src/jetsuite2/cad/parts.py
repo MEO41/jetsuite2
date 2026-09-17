@@ -50,6 +50,44 @@ def build_inlet(sheet: dict, notes: list) -> dict:
     return {"inlet_shroud": (shape, s["material"])}
 
 
+# ----------------------------------------------------------------- variable inlet guide vanes
+def build_igv(sheet: dict, notes: list) -> dict:
+    """Vane row (flat plates at the max setting angle about radial spindles), hub bullet and the unison ring."""
+    s = sheet.get("igv")
+    if not s:
+        return {}
+    n, ch, t = int(s["n"]), s["chord"], s["thickness"]
+    rh, rt = s["r_hub"], s["r_tip"]
+    x_mid = 0.5 * (s["x0"] + s["x1"])
+    ang = float(s.get("setting_max_deg", 25.0))
+    out = {}
+    try:
+        vanes = None
+        for k in range(n):
+            th = 360.0 * k / n
+            # plate: chord along x, thickness along the tangential direction, span radial from the hub to the duct wall
+            plate = (cq.Workplane("XY").box(ch, t, rt - rh + s["duct_wall"] * 0.5, centered=(True, True, False))
+                     .translate((0, 0, rh)))
+            plate = plate.rotate((0, 0, 0), (0, 0, 1), ang)          # setting angle about the radial spindle
+            plate = plate.rotate((0, 0, 0), (1, 0, 0), th).translate((x_mid, 0, 0))
+            spindle = (cq.Workplane("YZ").circle(0.5 * s["spindle_d"]).extrude(s["duct_wall"] + 8.0)
+                       .translate((x_mid, 0, rt)).rotate((0, 0, 0), (1, 0, 0), th))
+            v = plate.union(spindle).val()
+            vanes = v if vanes is None else vanes.fuse(v)
+        if vanes is not None and cadlib.valid(vanes):
+            out["igv_vanes"] = (vanes, s["material"])
+        else:
+            notes.append("igv_vanes: fuse invalid")
+        bullet = cq.Workplane("YZ").circle(rh).extrude(s["hub_bullet_L"]).translate((x_mid - 0.5 * s["hub_bullet_L"], 0, 0)).val()
+        out["igv_hub_bullet"] = (bullet, s["ring_material"])
+        ring = (cq.Workplane("YZ").circle(s["ring_r"] + 4.0).circle(s["ring_r"]).extrude(s["ring_width"])
+                .translate((x_mid - 0.5 * s["ring_width"], 0, 0)).val())
+        out["igv_unison_ring"] = (ring, s["ring_material"])
+    except Exception as e:  # noqa: BLE001
+        notes.append(f"igv: {e}")
+    return out
+
+
 # ----------------------------------------------------------------- diffuser
 def build_diffuser(sheet: dict, notes: list) -> dict:
     d = sheet["diffuser"]
@@ -298,6 +336,7 @@ def build_nozzle(sheet: dict, notes: list) -> dict:
 PART_GROUPS = {
     "impeller": (build_impeller, ["impeller"]),
     "inlet": (build_inlet, ["inlet"]),
+    "igv": (build_igv, ["igv"]),
     "diffuser": (build_diffuser, ["diffuser"]),
     "casing": (build_casing, ["casing", "combustor"]),
     "combustor": (build_combustor, ["combustor", "casing"]),

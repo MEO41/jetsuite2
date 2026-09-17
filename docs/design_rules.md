@@ -53,6 +53,7 @@ Generated from a 500 N sea-level-static design; limits that depend on inputs (ma
 | COMP-13 | backsweep angle | max | 45 |  | manufacturing/loading practice 15-45 deg |  |
 | COMP-14 | backsweep angle minimum for stability | min | 15 |  | range/stability practice |  |
 | COMP-15 | implied diffuser total-pressure loss | max | 0.12 |  | impeller/diffuser split: 3-10 % typical | impeller_eta_offset too large or eta_c assumption too low |
+| COMP-16 | impeller CFD vs assumed impeller efficiency \|diff\| | max | 0.03 | only with an ingested `eta_impeller_cfd` | L3 passage CFD (`jet cfd`) | adjust compressor.impeller_eta_offset (a modelled change) or the cycle eta_c, then `jet converge` |
 
 ## turbine
 
@@ -70,6 +71,56 @@ Generated from a 500 N sea-level-static design; limits that depend on inputs (ma
 | TURB-10 | estimated vs assumed turbine efficiency |diff| | max | 0.03 |  | consistency: run `jet converge` | estimate 0.875 vs cycle assumption 0.873 |
 | TURB-11 | AN2 (rotor annulus x rpm^2) at MCS | max | 4.5e+07 | m2rpm2 | uncooled cast wheels: JetCat/AMT class 2-3.5e7, ceiling ~4.5e7 m2 rpm2 |  |
 | TURB-12 | turbine tip diameter (info) | info | - | mm | - |  |
+
+## control
+
+| id | rule | kind | limit | unit | source | remedy |
+|---|---|---|---|---|---|---|
+| CTL-1 | bleed fraction at full opening | max | 0.15 | - | handling bleeds 5-15 % (Saravanamuttoo) | larger bleeds cost too much low-speed thrust |
+| CTL-2 | variable nozzle area range A8_low / A8_design | max (soft) | 1.35 | - | translating-plug / iris practice 1.0-1.3 | |
+| CTL-3 | IGV pre-swirl range | max (soft) | 40 | deg | IGV practice <= 30-40 deg | |
+| CTL-4 | accel line above decel line everywhere | min | 0.3 | - | limiter ordering: accel multiplier - decel multiplier >= 0.3 | |
+| CTL-5 | accel limiter at design speed | max (soft) | 1.35 | - | practice: 1.1-1.3 x steady Wf/P3 near max | |
+| CTL-6 | idle governor speed | min (soft) | 0.35 | N/N_d | micro-turbojet idle 30-50 % | |
+| CTL-7 | start ramp rate (fraction of accel line per s) | max (soft) | 1.0 | 1/s | faster ramps raise the start T04 peak and the disc thermal gradient (F3) | |
+| CTL-8 | IGV actuation rate required vs capability | max (soft) | igv_rate_capability_deg_s (30) | deg/s | schedule slope x fastest class acceleration (idle -> 95 % in 4 s) | slower schedule or faster actuator |
+| CTL-9 | IGV failure position defined (open = 0 deg, closed = max) | min | 1 | - | the transient stage runs the failed case (TRN-10) | |
+
+Surge-margin rules (MAP-1, OD-1, OD-4, ENV-2, TRN-4) quote the rig-calibrated band +/-0.077 SM points
+(`validation/data/surge_calibration.json`); the running line and every transient run through the control
+schedules, and `offdesign.unscheduled_line` carries the same engine with bleed closed, nozzle at design and
+IGV open for comparison.
+
+## thermal (analysis, L1)
+
+| id | rule | kind | limit | unit | source | remedy |
+|---|---|---|---|---|---|---|
+| THM-1 | turbine disc rim temperature vs material limit | max | material T_max | K | thermal network L1 +/-40 K | more rim purge, cooler cavity air, or a rim heat shield |
+| THM-2 | turbine disc bore temperature vs shaft / bearing tolerance | max (soft) | 850 | K | bore heat sinks into the shaft | |
+| THM-3 | rear bearing temperature vs bearing rating | max | bearing T_max | K | Palmgren heat, oil flow at the design dT | more oil flow, cooled housing, or move the rear bearing forward |
+| THM-4 | secondary air (leakage + purge) fraction of core flow | max | 0.03 | - | Martin labyrinth | tighter seal or more teeth |
+| THM-5 | rim-seal purge fraction vs ingestion minimum | min | 0.005 | - | declared minimum (Owen) | open the labyrinth clearance or add a purge bleed |
+| THM-6 | front bearing temperature vs bearing rating | max (soft) | bearing T_max | K | | |
+| THM-7 | bearing abort setting (predicted + margin) below the bearing rating | max (soft) | bearing T_max | K | abort = predicted + 30 K | |
+| THM-8 | mechanical-stage rim temperature assumption vs prediction | max (soft) | 40 | K | | `jet set mechanical.turbine_disc_rim_T_K=<predicted> ...` |
+
+## transient additions (analysis, L2)
+
+| id | rule | kind | limit | unit | source | remedy |
+|---|---|---|---|---|---|---|
+| TRN-10 | surge margin with the IGV actuator failed (slam accel, vanes at the failure position) | min (soft) | 0 | - | failed-IGV scenario; band rss(rig, transient) | fail-closed actuator or bleed interlock |
+| TRN-11 | slam accel with the P3 sensor lost (N-only schedule, accel x0.8): surge margin | min (soft) | 0 | - | ECU fallback scenario | derate more or bleed interlock |
+| TRN-12 | slam accel with the EGT sensor lost (accel x0.8, T04 limit -50 K): time to 95 % | max (soft) | 12 | s | ECU fallback scenario | |
+
+## throughflow (analysis, L2.5)
+
+| id | rule | kind | limit | unit | source | remedy |
+|---|---|---|---|---|---|---|
+| TF-1 | pressure-side relative velocity stays positive (no blade overload) | min | 0 | m/s | Stanitz loading on the blade-aligned through-flow | more blades, earlier splitter, less turning per unit length |
+| TF-2 | suction-side deceleration ratio W_ss,max / W_ss,exit (worst streamline) | max | 1.6 | - | Dean / Rodgers | unload the inducer, smoother beta(m) |
+| TF-3 | leading-edge incidence spread hub -> shroud | max | 6 | deg | twist matched to the inlet profile | |
+| TF-4 | exit meridional velocity distortion Cm_shroud / Cm_hub | max (soft) | 1.5 | - | curvature-driven imbalance | less shroud curvature near the exit |
+| TF-5 | blade loading parameter (W_ss - W_ps) / W_mean | max (soft) | 0.9 | - | Aungier / Stanitz 0.7-1.0 | |
 
 ## combustor
 

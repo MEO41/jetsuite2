@@ -49,8 +49,11 @@ def hub_curve_from_profile(profile: list, r1h: float, r2: float) -> np.ndarray:
     return p[i0:i1 + 1]
 
 
-def camber_grids(sheet: dict, n_span=7, n_chord=41, embed=0.6, splitter=False):
-    """Suction and pressure side grids (n_span, n_chord, 3) in mm for one blade at theta = 0."""
+def camber_streamlines(sheet: dict, n_span=7, n_chord=41, embed=0.6, splitter=False):
+    """The CAD's blade streamlines: list of (pts (n_chord, 2) meridional x/r, theta (n_chord,), m (n_chord,), tt)
+    after the radial-TE correction, plus theta_te_ref and the chord grid.  ``camber_grids`` builds the surfaces
+    from these; the CFD domain extends these same streamlines so the periodic faces sit exactly where the CAD
+    blades are."""
     r1s, r1h, r2, L = sheet["r1s"], sheet["r1h"], sheet["r2"], sheet["axial_length"]
     clearance = sheet["tip_clearance"]
     hub = hub_curve_from_profile(sheet["hub_profile"], r1h, r2)
@@ -97,10 +100,19 @@ def camber_grids(sheet: dict, n_span=7, n_chord=41, embed=0.6, splitter=False):
         thetas_te.append(theta[-1])
     # radial trailing edge: shift each streamline's theta linearly in s so all end at the mean theta_TE
     theta_te_ref = float(np.mean(thetas_te[1:]))
+    corrected = []
+    for pts, theta, m, tt in streamlines:
+        corrected.append((pts, theta + (theta_te_ref - theta[-1]) * (m / m[-1]), m, tt))
+    return corrected, theta_te_ref, s_grid
+
+
+def camber_grids(sheet: dict, n_span=7, n_chord=41, embed=0.6, splitter=False):
+    """Suction and pressure side grids (n_span, n_chord, 3) in mm for one blade at theta = 0."""
+    streamlines, theta_te_ref, s_grid = camber_streamlines(sheet, n_span=n_span, n_chord=n_chord, embed=embed, splitter=splitter)
+    t_root, t_tip = sheet["t_root"], sheet["t_tip"]
     P_grid, thick_grid = [], []
     for i, (pts, theta, m, tt) in enumerate(streamlines):
         sfrac = m / m[-1]
-        theta = theta + (theta_te_ref - theta[-1]) * sfrac
         # thickness: root->tip taper, elliptic LE over the first 8 % of meridional length, TE rounded
         t_n = t_root + (t_tip - t_root) * tt
         le = np.clip(sfrac / 0.08, 0, 1)

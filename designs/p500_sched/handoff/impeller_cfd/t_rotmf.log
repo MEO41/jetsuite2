@@ -1,0 +1,10 @@
+
+
+Error in "void CConfig::SetConfig_Parsing(std::istream&)": 
+-------------------------------------------------------------------------
+Line 41 OUTLET_TYPE: invalid option name. Check current SU2 options in config_template.cfg.
+Did you mean INC_OUTLET_TYPE?
+
+------------------------------ Error Exit -------------------------------
+
+

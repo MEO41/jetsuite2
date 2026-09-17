@@ -55,7 +55,7 @@ DEFAULTS = {
 
 READS = ["inputs.life.*", "outputs.turbine.*", "outputs.compressor.*", "outputs.mechanical.*", "outputs.rotor.*",
          "outputs.speed.*", "outputs.cycle.T04_K", "outputs.cycle.Tt3_K", "outputs.layout.OD_m", "outputs.layout.casing_wall_m",
-         "outputs.geometry.sheet.casing"]
+         "outputs.geometry.sheet.casing", "outputs.control.start", "outputs.thermal.temperatures"]
 
 
 def lmp_curve(mat: str, C: float):
@@ -110,6 +110,14 @@ def run(doc: dict) -> dict:
     T04, Tt3 = out(doc, "cycle", "T04_K"), out(doc, "cycle", "Tt3_K")
     C = float(g("LMP_C")); scatter = float(g("life_scatter_factor"))
     mat_t = t["material"]
+    # predicted metal temperatures from the thermal stage (section 6) replace the mechanical-stage assumptions when present
+    thm = (doc["outputs"].get("thermal") or {}).get("temperatures") or {}
+    me = dict(me)
+    me["turbine"] = dict(me["turbine"])
+    T_src = "assumed (mechanical inputs)"
+    if thm.get("T_rim_K"):
+        me["turbine"]["T_rim_K"], me["turbine"]["T_bore_K"] = float(thm["T_rim_K"]), float(thm["T_bore_K"])
+        T_src = f"thermal network L1 +/-{thm.get('band_K', 40):.0f} K"
     # ---- creep: blade root and disc rim over the mission (stress ~ N^2, temperature ~ T04 fraction)
     dmg_blade = dmg_rim = 0.0
     seg_out = []
@@ -141,13 +149,26 @@ def run(doc: dict) -> dict:
     T_rim_ss, T_bore_ss = me["turbine"]["T_rim_K"], me["turbine"]["T_bore_K"]
     T_r, T_b = 300.0, 300.0
     tau_r, tau_b = float(g("rim_thermal_tau_s")), float(g("bore_thermal_tau_s"))
-    for _ in range(3000):
-        dt = 0.1
-        T_r += (T_rim_ss - T_r) * dt / tau_r
-        T_b += (T_bore_ss - T_b) * dt / tau_b + (T_r - T_b) * dt / 200.0
+    # the start fuel ramp (control stage) sets how fast the gas temperature rises: the rim and bore see a
+    # gas-side ramp of duration t_ramp = 1 / ramp_rate (time for the Wf/P3 command to reach the accel line)
+    ramp = doc["outputs"].get("control", {}).get("start", {}).get("ramp_rate")
+    t_ramp = (1.0 / float(ramp)) if ramp else 0.0
+    dt = 0.1
+    for i in range(3000):
+        f = min(i * dt / t_ramp, 1.0) if t_ramp > 0 else 1.0
+        T_gr = 300.0 + (T_rim_ss - 300.0) * f
+        T_gb = 300.0 + (T_bore_ss - 300.0) * f
+        T_r += (T_gr - T_r) * dt / tau_r
+        T_b += (T_gb - T_b) * dt / tau_b + (T_r - T_b) * dt / 200.0
         dT_max = max(dT_max, T_r - T_b)
     sig_th = m_t["E"] * m_t["alpha"] * dT_max / (1 - m_t["nu"]) * 0.35  # bore thermal stress ~ 0.35 E a dT/(1-nu) (parabolic radial gradient)
     sig_bore_total = me["turbine"]["sigma_peak_Pa"] + sig_th
+    stress_src = f"L1 disc factor + 0.35 E alpha dT/(1-nu) thermal term"
+    # an ingested FE result (overrides.life.sigma_bore_total_Pa, L3) replaces the L1 superposition; the LCF curve stays L1
+    ov = (doc.get("overrides", {}).get("life", {}) or {}).get("sigma_bore_total_Pa")
+    if ov and ov.get("value"):
+        sig_bore_total = float(ov["value"])
+        stress_src = f"{ov.get('tier', 'L3')} FE stress ({ov.get('source', '')[:60]})"
     N_tur_th, _ = bore_cycles(mat_t, sig_bore_total, me["turbine"]["T_bore_K"])
     # ---- bearing L10 with axial load and lubrication
     brg = ro["bearing"]
@@ -156,7 +177,7 @@ def run(doc: dict) -> dict:
     X, Y = (1.0, 0.0) if Fa / max(Fr, 1e-3) < 0.5 else (0.44, 1.23)    # 15 deg contact angle approx
     P_eq = X * Fr + Y * Fa
     a_iso = {"oil-mist": 1.0, "oil-air": 1.2, "grease": 0.4}.get(str(g("lubrication")), 0.8)
-    T_brg = float(doc["inputs"]["rotor"].get("bearing_T_K", 420.0))
+    T_brg = float(thm.get("T_bearing_rear_K") or doc["inputs"]["rotor"].get("bearing_T_K", 420.0))
     a_temp = 1.0 if T_brg <= 400 else max(0.3, 1.0 - (T_brg - 400) / 250)
     L10 = a_iso * a_temp * (brg["C"] * 1e3 / max(P_eq, 1.0)) ** 3 * 1e6 / (60 * sp["rpm"])
     dn_ok = brg["bore"] * sp["rpm_mcs"] <= brg["dn_limit"] * {"oil-mist": 1.0, "oil-air": 1.1, "grease": 0.5}.get(str(g("lubrication")), 0.8)
@@ -181,7 +202,8 @@ def run(doc: dict) -> dict:
         check("LIFE-3", "impeller bore LCF cycles / scatter", N_imp / scatter, cyc_target, "min",
               f"Manson universal slopes, {c['material']}", note="lower bore stress: boreless hub or lower U2"),
         check("LIFE-4", "turbine bore LCF cycles incl. start thermal stress / scatter", N_tur_th / scatter, cyc_target, "min",
-              f"Manson universal slopes, {mat_t}; thermal dT_max {dT_max:.0f} K", note="slower start, thicker hub, or boreless wheel"),
+              f"Manson universal slopes (L1), {mat_t}; bore stress {sig_bore_total/1e6:.0f} MPa from {stress_src}; thermal dT_max {dT_max:.0f} K; T {T_src}",
+              note="slower start, thicker hub, or boreless wheel"),
         check("LIFE-5", "bearing L10 life (ISO 281, lubrication/temperature factors)", L10, life_target * 4, "min",
               f"{brg['id']} C {brg['C']} kN, P_eq {P_eq:.0f} N, {g('lubrication')}", unit="h"),
         check("LIFE-6", "bearing DN with the lubrication method", 1.0 if dn_ok else 0.0, 1.0, "min", "catalogue DN x lubrication factor", warn_margin=0.0,
@@ -192,7 +214,8 @@ def run(doc: dict) -> dict:
     ]
     return dict(mission=seg_out, creep=dict(blade_life_h=life_blade, rim_life_h=life_rim, damage_blade=dmg_blade, damage_rim=dmg_rim),
                 lcf=dict(impeller_cycles=N_imp, impeller_strain=de_imp, turbine_cycles=N_tur, turbine_strain=de_tur,
-                         turbine_cycles_with_thermal=N_tur_th, thermal_dT_max_K=dT_max, thermal_stress_Pa=sig_th),
+                         turbine_cycles_with_thermal=N_tur_th, thermal_dT_max_K=dT_max, thermal_stress_Pa=sig_th, thermal_ramp_s=t_ramp,
+                         sigma_bore_total_Pa=sig_bore_total, stress_source=stress_src),
                 bearing=dict(L10_h=L10, P_eq_N=P_eq, Fa_N=Fa, Fr_N=Fr, a_iso=a_iso, a_temp=a_temp, lubrication=str(g("lubrication"))),
                 containment=dict(E_fragment_J=E_frag, E_absorbed_J=E_abs, t_required_mm=t_req * 1e3, t_casing_mm=t_cas * 1e3,
                                  burst_omega=omega_b),

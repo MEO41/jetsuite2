@@ -26,15 +26,16 @@ def phys_flow(Wc, T0, P0):
 
 # ---------------------------------------------------------------- compressor
 def compressor_map(g: closs.CompressorGeometry, N_design: float, T01_design: float, P01_design: float,
-                   N_fracs=(0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.05, 1.1), n_pts: int = 22, verbose=None) -> dict:
-    """Map at the design inlet conditions expressed in corrected terms."""
+                   N_fracs=(0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.05, 1.1), n_pts: int = 22, verbose=None,
+                   igv_deg: float = 0.0) -> dict:
+    """Map at the design inlet conditions expressed in corrected terms (one IGV setting)."""
     lines = []
     Nc_design = N_design / math.sqrt(T01_design / T_REF)
     for f in N_fracs:
         omega = f * N_design * 2 * math.pi / 60
         if verbose:
-            verbose(f"  compressor speed line {f:.2f}")
-        sl = closs.speedline(g, omega, T01_design, P01_design, n_pts=n_pts)
+            verbose(f"  compressor speed line {f:.2f} (igv {igv_deg:.0f} deg)")
+        sl = closs.speedline(g, omega, T01_design, P01_design, n_pts=n_pts, igv_deg=igv_deg)
         if not sl.get("ok"):
             continue
         # keep from choke down to the surge point (plus two points beyond for interpolation stability)
@@ -48,8 +49,8 @@ def compressor_map(g: closs.CompressorGeometry, N_design: float, T01_design: flo
                           choke_W_corr=corr_flow(sl["choke_W"], T01_design, P01_design),
                           surge_PR=float(np.interp(sl["surge_W"], Ws[order], PR[order])),
                           surge_reason=sl["surge_reason"]))
-    return dict(kind="compressor", N_corr_design=Nc_design, T_ref=T_REF, P_ref=P_REF, lines=lines,
-                surge_uncertainty=closs.SURGE_UNCERTAINTY)
+    return dict(kind="compressor", N_corr_design=Nc_design, T_ref=T_REF, P_ref=P_REF, lines=lines, igv_deg=igv_deg,
+                surge_band_SM=closs.SURGE_BAND_SM)
 
 
 # ------------------------------------------------------------------ turbine
@@ -105,7 +106,7 @@ class CompressorMap:
         w = Ws + beta * (Wc - Ws)
         return w, float(self._interp_extrap(w, W, PR)), float(max(self._interp_extrap(w, W, eta), 0.2))
 
-    def point(self, N_frac: float, beta: float):
+    def point(self, N_frac: float, beta: float, igv: float = 0.0):   # igv ignored: single-setting map
         """(W_corr, PR, eta) at corrected speed fraction and beta (beta < 0 = stalled region, extrapolated)."""
         N_frac = float(np.clip(N_frac, self.N.min(), self.N.max()))
         beta = float(np.clip(beta, -0.6, 1.08))
@@ -124,9 +125,38 @@ class CompressorMap:
         w0, pr0, _ = self.point(N_frac, 0.0)
         return w0, pr0
 
-    def surge_margin(self, N_frac: float, W_corr: float, PR: float) -> float:
+    def surge_margin(self, N_frac: float, W_corr: float, PR: float, igv: float = 0.0) -> float:
         """SAE-style surge margin at constant corrected speed: (PR_s W)/(PR W_s) - 1."""
         w0, pr0 = self.surge_PR_at_flow(N_frac, W_corr)
+        return (pr0 * W_corr) / (PR * w0) - 1.0
+
+
+class CompressorMapFamily:
+    """Maps at several IGV settings; linear interpolation in the IGV angle."""
+
+    def __init__(self, maps: list[dict]):
+        self.maps = sorted([CompressorMap(m) for m in maps], key=lambda cm: cm.m.get("igv_deg", 0.0))
+        self.igvs = np.array([cm.m.get("igv_deg", 0.0) for cm in self.maps], float)
+        self.Nc_design = self.maps[0].Nc_design
+        self.m = self.maps[0].m
+        self.N = self.maps[0].N
+
+    def _pair(self, igv):
+        if len(self.maps) == 1 or igv <= self.igvs[0]:
+            return self.maps[0], self.maps[0], 0.0
+        if igv >= self.igvs[-1]:
+            return self.maps[-1], self.maps[-1], 0.0
+        i = int(np.searchsorted(self.igvs, igv))
+        t = (igv - self.igvs[i - 1]) / (self.igvs[i] - self.igvs[i - 1])
+        return self.maps[i - 1], self.maps[i], t
+
+    def point(self, N_frac, beta, igv=0.0):
+        a, b, t = self._pair(igv)
+        pa, pb = a.point(N_frac, beta), b.point(N_frac, beta)
+        return tuple((1 - t) * np.array(pa) + t * np.array(pb))
+
+    def surge_margin(self, N_frac, W_corr, PR, igv=0.0):
+        w0, pr0, _ = self.point(N_frac, 0.0, igv)
         return (pr0 * W_corr) / (PR * w0) - 1.0
 
 
@@ -138,7 +168,14 @@ class TurbineMap:
 
     def _line(self, line, PR_ts):
         pr = np.array(line["PR_ts"])
-        PR_ts = float(np.clip(PR_ts, pr.min(), pr.max()))
+        pmin = float(pr.min())
+        if PR_ts < pmin:
+            # below the lowest mapped pressure ratio (start / windmill region): corrected flow falls toward zero
+            # at PR 1 like an orifice, W ~ sqrt((PR - 1) / (PR_min - 1)); efficiency held, PR_tt -> 1
+            f = math.sqrt(max(PR_ts - 1.0, 0.0) / max(pmin - 1.0, 1e-6))
+            W0, eta0, prtt0 = float(line["W_corr"][int(np.argmin(pr))]), float(line["eta_tt"][int(np.argmin(pr))]), float(line["PR_tt"][int(np.argmin(pr))])
+            return W0 * f, eta0, 1.0 + (prtt0 - 1.0) * max(PR_ts - 1.0, 0.0) / max(pmin - 1.0, 1e-6)
+        PR_ts = float(np.clip(PR_ts, pmin, pr.max()))
         return (float(np.interp(PR_ts, pr, line["W_corr"])), float(np.interp(PR_ts, pr, line["eta_tt"])),
                 float(np.interp(PR_ts, pr, line["PR_tt"])))
 

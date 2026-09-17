@@ -112,8 +112,10 @@ class Design:
         self.store.commit(f"converge ({len(hist)} passes): eta_c {hist[-1]['eta_c_assumed']:.3f}, eta_t {hist[-1]['eta_t_assumed']:.3f}")
         return hist
 
-    def analyze(self, names: list[str] | None = None, force: bool = False, commit: bool = True, verbose=None):
-        """Run analysis stages (all of them, or the named ones with their stale core prerequisites)."""
+    def analyze(self, names: list[str] | None = None, force: bool = False, commit: bool = True, verbose=None, parallel: bool = True,
+                workers: int = 4):
+        """Run analysis stages (all of them, or the named ones with their stale core prerequisites).  With ``parallel``
+        the stages of each dependency wave run concurrently in processes."""
         from .stages import ANALYSIS
         names = names or ANALYSIS
         bad = [n for n in names if n not in ANALYSIS]
@@ -121,7 +123,10 @@ class Design:
             raise ValueError(f"unknown analysis stage(s) {bad}; available: {', '.join(ANALYSIS)}")
         # core first (cheap), then the requested analyses in graph order
         rep_core = self.graph.run(self.store, verbose=verbose)
-        rep = self.graph.run(self.store, only=names, force=force, verbose=verbose, include_analysis=True)
+        if parallel and len(names) > 1:
+            rep = self.graph.run_parallel(self.store, only=names, force=force, verbose=verbose, workers=workers)
+        else:
+            rep = self.graph.run(self.store, only=names, force=force, verbose=verbose, include_analysis=True)
         rep.ran = rep_core.ran + rep.ran
         rep.timings.update(rep_core.timings)
         rep.changes.update(rep_core.changes)

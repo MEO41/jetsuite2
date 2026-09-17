@@ -37,8 +37,9 @@ DEFAULTS = {
 
 READS = ["inputs.testbench.*", "inputs.transient.*", "inputs.cycle.*", "outputs.maps.compressor_map", "outputs.maps.turbine_map",
          "outputs.speed.rpm", "outputs.cycle.*", "outputs.requirements.*", "outputs.rotor.Ip_impeller", "outputs.rotor.Ip_turbine",
-         "outputs.transient.control", "outputs.offdesign.running_line", "outputs.layout.*", "outputs.rotordyn.unbalance",
-         "outputs.combustor1d.pattern_factor"]
+         "outputs.control.*", "outputs.offdesign.running_line", "outputs.layout.*", "outputs.rotordyn.unbalance",
+         "outputs.combustor.liner_dp_Pa", "outputs.combustor.U_ref_m_s", "outputs.combustor.L_liner_m", "outputs.combustor.H_liner_m",
+         "outputs.thermal.abort", "outputs.offdesign.steady_schedule"]
 
 
 def run(doc: dict) -> dict:
@@ -46,11 +47,23 @@ def run(doc: dict) -> dict:
     E = engine_from_doc(doc)
     req = out(doc, "requirements")
     amb = matching.Ambient.at(0.0, 0.0, req["dT_isa_K"])       # test cell: sea level static, ambient offset kept
-    ctrl_in = doc["outputs"].get("transient", {}).get("control") or {}
-    ctrl = ptr.Control(**{k: v for k, v in ctrl_in.items() if k in ptr.Control.__dataclass_fields__}) if ctrl_in else ptr.Control()
+    # controller from the control stage (same as the transient stage); no dependency on the transient stage itself,
+    # so the bench can run in the same wave as the transient
+    if E.sched is not None and doc["outputs"].get("control"):
+        ctrl = ptr.controller_from_schedules(E.sched)
+        ctrl.self_sustain_frac = float(doc["inputs"].get("transient", {}).get("self_sustain_frac", 0.22))
+    else:
+        ctrl_in = doc["outputs"].get("transient", {}).get("control") or {}
+        ctrl = ptr.Control(**{k: v for k, v in ctrl_in.items() if k in ptr.Control.__dataclass_fields__}) if ctrl_in else ptr.Control()
     dt = float(g("dt_s"))
-    sched = ptr.steady_schedule(E, amb, [0.4, 0.45, 0.5, 0.55, 0.6, 0.7, 0.8, 0.9, 1.0, 1.05])
-    steps = [float(s) for s in g("throttle_steps")]
+    req_full = out(doc, "requirements")
+    cached = (doc["outputs"].get("offdesign") or {}).get("steady_schedule")
+    sls_design = abs(req_full.get("altitude_m", 0.0)) < 1.0 and abs(req_full.get("mach", 0.0)) < 1e-6
+    if cached and sls_design and len(cached.get("N", [])) >= 6:
+        sched = cached                                           # bench is SLS: reuse the off-design schedule when the design point is SLS too
+    else:
+        sched = ptr.steady_schedule(E, amb, [0.4, 0.45, 0.5, 0.55, 0.6, 0.7, 0.8, 0.9, 1.0, 1.05])
+    steps = [max(float(s), ctrl.idle_frac) for s in g("throttle_steps")]   # the governor never commands below idle
     dwell = float(g("dwell_s"))
     # ---- procedure: start (starter), idle 10 s, steps, endurance cycles, shutdown (fuel off)
     profile = [(0.0, "start", ctrl.idle_frac)]
@@ -129,7 +142,15 @@ def run(doc: dict) -> dict:
     # ---- instrumentation plan
     lay = out(doc, "layout"); cy = out(doc, "cycle")
     mx = max(table, key=lambda r: r["Fn"]) if table else None
-    PF = doc["outputs"].get("combustor1d", {}).get("pattern_factor", 0.25)
+    # pattern factor for the EGT-spread expectation: the 1-D combustor's value if it has run, else the same Lefebvre-form
+    # correlation on the core combustor's liner (keeps the bench out of the 1-D combustor's dependency wave)
+    cb = out(doc, "combustor"); cy0 = out(doc, "cycle")
+    if doc["outputs"].get("combustor1d", {}).get("pattern_factor"):
+        PF = doc["outputs"]["combustor1d"]["pattern_factor"]
+    else:
+        import math as _m
+        dp_q = cb["liner_dp_Pa"] / (0.5 * (cy0["Pt3_Pa"] / (287.05 * cy0["Tt3_K"])) * cb["U_ref_m_s"] ** 2)
+        PF = float(min(max(1.0 - _m.exp(-0.0025 * (cb["L_liner_m"] / cb["H_liner_m"]) * max(dp_q, 1.0)), 0.05), 0.5))
     instr = [
         dict(measurement="spool speed N", sensor="optical / magnetic pickup on the shaft nut", location="impeller nose", range="0-150 krpm",
              expected=f"{E.N_design:.0f} rpm at max", tolerance="+/-0.5 %", closes="all speed-referenced predictions"),
@@ -156,7 +177,8 @@ def run(doc: dict) -> dict:
              closes="lubrication assumptions"),
     ]
     abort_criteria = [f"EGT > {ab['EGT_max_K']:.0f} K", f"N > {ab['N_max_frac']:.2f} N_design", f"vibration > {ab['vib_max_um']:.0f} um pk at the housing",
-                      "P3 falls while N rises (surge)", "bearing temperature > 450 K or rising > 5 K/s", "fuel pressure loss or flame-out (EGT drop > 100 K/s)",
+                      "P3 falls while N rises (surge)", (f"bearing temperature > {doc['outputs']['thermal']['abort']['bearing_T_abort_K']:.0f} K (predicted + margin, thermal stage) or rising > 5 K/s"
+                       if doc["outputs"].get("thermal", {}).get("abort") else "bearing temperature > 450 K (assumed; run `jet analyze thermal` for a prediction) or rising > 5 K/s"), "fuel pressure loss or flame-out (EGT drop > 100 K/s)",
                       "any thrust-frame anomaly"]
     rules = [
         check("TB-1", "virtual run completed without abort", float(len(aborts)), 0.0, "max", "abort criteria", hard=False, warn_margin=0.0,

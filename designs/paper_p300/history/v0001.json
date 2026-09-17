@@ -1,0 +1,418 @@
+{
+ "name": "paper_p300",
+ "version": 1,
+ "created": "2026-09-16T22:24:00",
+ "updated": "2026-09-16T22:24:00",
+ "inputs": {
+  "requirements": {
+   "thrust_N": 300.0,
+   "altitude_m": 0.0,
+   "mach": 0.0,
+   "dT_isa_K": 0.0,
+   "max_diameter_mm": null,
+   "max_length_mm": null,
+   "max_mass_kg": null,
+   "design_life_h": 25.0
+  },
+  "cycle": {
+   "OPR": 3.55,
+   "T04_K": 1157,
+   "eta_c": 0.8,
+   "eta_t": 0.87,
+   "eta_b": 0.97,
+   "dp_burner": 0.05,
+   "intake_recovery": 0.98,
+   "dp_jetpipe": 0.02,
+   "eta_mech": 0.99,
+   "bleed_frac": 0.01,
+   "power_offtake_W": 100.0,
+   "nozzle_Cv": 0.98,
+   "nozzle_Cd": 0.97,
+   "fuel_LHV_J_per_kg": 43124000.0
+  },
+  "speed": {
+   "rpm": 105000,
+   "inducer_M_rel_target": 1.2,
+   "inducer_M_rel_max": 1.3,
+   "mcs_factor": 1.05,
+   "turbine_stress_margin": 1.25,
+   "dn_margin": 0.85
+  },
+  "compressor": {
+   "material": "Ti-6Al-4V",
+   "hub_tip_ratio": 0.35,
+   "backsweep_deg": 30.0,
+   "n_main": "auto",
+   "n_splitter": "auto",
+   "splitter_length_frac": 0.6,
+   "phi2": 0.28,
+   "power_input_factor": 1.03,
+   "impeller_eta_offset": 0.06,
+   "aero_blockage_exit": 0.06,
+   "tip_clearance_mm": "auto",
+   "blade_tip_thickness_mm": "auto",
+   "incidence_deg": 3.0,
+   "axial_length_ratio": 0.32,
+   "diffuser_type": "vaned",
+   "vaneless_gap_ratio": 1.08,
+   "diffuser_radius_ratio": 1.38,
+   "n_vanes": "auto",
+   "diffuser_exit_angle_deg": 35.0,
+   "diffuser_throat_mach": 0.7,
+   "diffuser_incidence_margin_deg": 1.5,
+   "diffuser_Cp": 0.62,
+   "n_deswirl": "auto",
+   "combustor_inlet_mach": 0.12,
+   "safety_factor_blade": 1.0,
+   "blade_load_relief": 0.8
+  },
+  "turbine": {
+   "material": "IN713LC",
+   "ngv_material": "IN713LC",
+   "psi": "auto",
+   "phi": 0.65,
+   "reaction": 0.4,
+   "hub_tip_ratio_target": 0.62,
+   "hub_tip_ratio_min": 0.55,
+   "zweifel": 0.85,
+   "aspect_ratio_ngv": 1.0,
+   "aspect_ratio_rotor": 1.4,
+   "n_ngv": "auto",
+   "n_rotor": "auto",
+   "tip_clearance_mm": "auto",
+   "te_thickness_mm": 0.6,
+   "tmax_over_c_ngv": 0.2,
+   "tmax_over_c_rotor": 0.16,
+   "taper_factor": 0.6,
+   "T_metal_offset_K": 120.0,
+   "stress_margin": 1.25,
+   "ngv_loss_coefficient": 0.06
+  },
+  "combustor": {
+   "liner_material": "IN625",
+   "casing_material": "AISI321",
+   "U_ref_target_m_s": 25.0,
+   "residence_time_ms": 2.5,
+   "length_to_height": 2.8,
+   "liner_dp_frac": 0.035,
+   "hole_Cd": 0.62,
+   "air_split": {
+    "primary": 0.22,
+    "secondary": 0.28,
+    "dilution": 0.35,
+    "cooling": 0.15
+   },
+   "hole_d_mm": {
+    "primary": "auto",
+    "secondary": "auto",
+    "dilution": "auto",
+    "cooling": 1.5
+   },
+   "n_vaporisers": "auto",
+   "vaporiser_d_mm": "auto",
+   "liner_wall_mm": 0.6,
+   "casing_wall_mm": 1.0,
+   "annulus_passage_frac": 0.16,
+   "inner_radius_margin_mm": 6.0,
+   "n_igniters": 1
+  },
+  "layout": {
+   "inlet_length_ratio": 0.45,
+   "casing_wall_mm": 1.0,
+   "front_bearing_offset_ratio": 0.1,
+   "rear_bearing_offset_ratio": 0.22,
+   "ngv_rotor_gap_ratio": 0.3,
+   "nozzle_half_angle_deg": 12.0,
+   "tail_cone_half_angle_deg": 18.0
+  },
+  "rotor": {
+   "shaft_material": "AISI4340",
+   "journal_d_mm": "auto",
+   "tube_od_mm": "auto",
+   "tube_wall_mm": "auto",
+   "bearing_id": "auto",
+   "bearing_hybrid": true,
+   "bearing_type": "angular_contact",
+   "bearing_T_K": 420.0,
+   "support_stiffness_N_m": 10000000.0,
+   "tunnel_clearance_mm": 2.0,
+   "tunnel_wall_mm": 1.5,
+   "critical_speed_margin": 1.25,
+   "impeller_bore_mm": "auto"
+  },
+  "mechanical": {
+   "impeller_mount": "bore",
+   "turbine_mount": "stub",
+   "k_peak_boreless": 1.3,
+   "k_peak_bored": 1.6,
+   "burst_k": 0.85,
+   "burst_ratio_required": 1.2,
+   "disc_T_impeller_offset_K": -20.0,
+   "turbine_disc_rim_T_K": 950.0,
+   "turbine_disc_bore_T_K": 750.0,
+   "nut_preload_fraction": 0.6
+  },
+  "geometry": {
+   "flange_bolt_spacing_mm": 38.0,
+   "flange_screw_class": "12.9",
+   "vane_thickness_mm": "auto",
+   "back_plate_mm": 4.0,
+   "inlet_wall_mm": 2.0,
+   "shroud_wall_mm": 3.0,
+   "housing_wall_mm": 4.0
+  },
+  "control": {
+   "bleed_enabled": false,
+   "bleed_max_frac": 0.1,
+   "bleed_close_N": 0.72,
+   "bleed_open_N": 0.45,
+   "bleed_port": "diffuser_exit",
+   "nozzle_variable": false,
+   "nozzle_A8_low_speed": 1.15,
+   "nozzle_open_N": 0.5,
+   "nozzle_close_N": 0.85,
+   "igv_enabled": false,
+   "igv_max_deg": 25.0,
+   "igv_open_N": 0.5,
+   "igv_close_N": 0.8,
+   "igv_fail_position": "open",
+   "igv_rate_capability_deg_s": 30.0,
+   "accel_limit_line": [
+    [
+     0.3,
+     1.5
+    ],
+    [
+     0.5,
+     1.4
+    ],
+    [
+     0.7,
+     1.3
+    ],
+    [
+     0.9,
+     1.25
+    ],
+    [
+     1.05,
+     1.15
+    ]
+   ],
+   "decel_limit_line": [
+    [
+     0.3,
+     0.55
+    ],
+    [
+     0.6,
+     0.5
+    ],
+    [
+     1.05,
+     0.45
+    ]
+   ],
+   "idle_N": 0.5,
+   "N_max_frac": 1.05,
+   "T04_limit_K": 1200.0,
+   "fuel_lag_s": 0.3,
+   "governor_gain": 8.0,
+   "start_light_off_N": 0.1,
+   "start_starter_cutoff_N": 0.35,
+   "start_ramp_rate": 0.25,
+   "start_starter_torque_Nm": 0.5
+  },
+  "assess": {
+   "backsweep_sweep_deg": [
+    10,
+    15,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45
+   ],
+   "two_zone_wake_fraction": 0.2,
+   "two_zone_secondary_mass_fraction": 0.12
+  },
+  "combustor1d": {
+   "dome_cooling_frac": 0.1,
+   "eta_b_target": 0.98,
+   "theta_ref": 72000000.0,
+   "wall_emissivity": 0.7,
+   "film_effectiveness": 0.45,
+   "altitude_relight_m": 6000.0,
+   "windmill_N_frac": 0.12
+  },
+  "maps": {
+   "speed_fractions": [
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    1.0,
+    1.05,
+    1.1
+   ],
+   "points_per_line": 22,
+   "slip_model": "wiesner",
+   "plots": true
+  },
+  "offdesign": {
+   "N_fractions": [
+    0.4,
+    0.45,
+    0.5,
+    0.55,
+    0.6,
+    0.65,
+    0.7,
+    0.75,
+    0.8,
+    0.85,
+    0.9,
+    0.95,
+    1.0,
+    1.05
+   ],
+   "N_max_frac": 1.05,
+   "idle_thrust_frac": 0.03,
+   "plots": true
+  },
+  "envelope": {
+   "altitudes_m": [
+    0,
+    1500,
+    3000,
+    5000,
+    7000,
+    9000
+   ],
+   "machs": [
+    0.0,
+    0.3,
+    0.6,
+    0.8
+   ],
+   "dT_isa_K": [
+    -20,
+    0,
+    20,
+    35
+   ],
+   "N_max_frac": 1.05,
+   "SM_floor": 0.08,
+   "plots": true
+  },
+  "transient": {
+   "accel_limit": 1.3,
+   "decel_limit": 0.45,
+   "T04_limit": 1200.0,
+   "N_max_frac": 1.05,
+   "idle_frac": 0.5,
+   "fuel_ramp_s": 0.3,
+   "starter_torque_Nm": 0.5,
+   "starter_cutoff_frac": 0.35,
+   "light_off_N_frac": 0.1,
+   "self_sustain_frac": 0.22,
+   "dt_s": 0.05,
+   "plots": true
+  },
+  "life": {
+   "mission": [
+    {
+     "name": "idle",
+     "time_frac": 0.15,
+     "N_frac": 0.45,
+     "T04_frac": 0.72
+    },
+    {
+     "name": "cruise",
+     "time_frac": 0.65,
+     "N_frac": 0.9,
+     "T04_frac": 0.92
+    },
+    {
+     "name": "max",
+     "time_frac": 0.2,
+     "N_frac": 1.0,
+     "T04_frac": 1.0
+    }
+   ],
+   "starts_per_hour": 2.0,
+   "life_target_h": 50.0,
+   "cycles_target": 500,
+   "LMP_C": 20.0,
+   "life_scatter_factor": 3.0,
+   "lubrication": "oil-mist",
+   "bearing_preload_N": 60.0,
+   "casing_containment_material": "AISI321",
+   "rim_thermal_tau_s": 30.0,
+   "bore_thermal_tau_s": 90.0
+  },
+  "rotordyn": {
+   "support_stiffness_sweep": [
+    500000.0,
+    1000000.0,
+    2000000.0,
+    5000000.0,
+    10000000.0,
+    20000000.0,
+    50000000.0,
+    100000000.0
+   ],
+   "support_damping_N_s_m": 800.0,
+   "balance_grade_G": 2.5,
+   "n_speeds": 60,
+   "plots": true
+  },
+  "manufacturing": {
+   "impeller_process": "billet-5axis",
+   "turbine_process": "investment-cast",
+   "balance_grade_G": 2.5,
+   "balancer_resolution_gmm": 0.05,
+   "min_cutter_d_mm": 3.0,
+   "hub_fillet_mm": 1.0,
+   "tolerances_mm": {
+    "impeller_axial_position": 0.03,
+    "shroud_contour": 0.03,
+    "front_housing_seat": 0.02,
+    "bearing_axial_float": 0.05,
+    "shaft_shoulder": 0.02,
+    "turbine_axial_position": 0.03,
+    "turbine_shroud_bore": 0.03,
+    "casing_stack": 0.05,
+    "thermal_growth_turbine_shroud": 0.06,
+    "thermal_growth_impeller": 0.02
+   }
+  },
+  "testbench": {
+   "throttle_steps": [
+    0.42,
+    0.6,
+    0.8,
+    0.9,
+    1.0,
+    0.9,
+    0.7,
+    0.42
+   ],
+   "dwell_s": 8.0,
+   "endurance_cycles": 2,
+   "dt_s": 0.05,
+   "abort": {
+    "EGT_max_K": 1250.0,
+    "N_max_frac": 1.07,
+    "vib_max_um": 40.0,
+    "P3_min_frac_at_max": 0.9
+   }
+  }
+ },
+ "outputs": {},
+ "stamps": {},
+ "rules": {}
+}

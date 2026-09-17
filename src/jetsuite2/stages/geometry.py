@@ -35,7 +35,7 @@ DEFAULTS = {
 
 READS = ["inputs.geometry.*", "outputs.compressor.*", "outputs.turbine.*", "outputs.combustor.*",
          "outputs.layout.*", "outputs.rotor.*", "outputs.requirements.max_mass_kg", "outputs.cycle.W_kg_s",
-         "outputs.requirements.thrust_N"]
+         "outputs.requirements.thrust_N", "outputs.control.bleed_port", "outputs.control.bleed_enabled"]
 
 MM = 1e3
 
@@ -77,6 +77,21 @@ def run(doc: dict) -> dict:
     add_mass("inlet_shroud", "Al6061-T6", geomlib.ring_volume(r1s + wall_in * 1e-3, r1s, abs(lay["x_inlet0_m"]))
              + 2 * math.pi * 0.5 * (r1s + r2) * wall_sh * 1e-3 * math.hypot(L_imp, r2 - r1s) * 1.2)
 
+    # ------------------------------------------------------------ variable inlet guide vanes (if fitted)
+    igv = lay.get("igv") or {}
+    if igv.get("fitted"):
+        n_v, ch, rh, rt = int(igv["n_vanes"]), igv["chord_m"], igv["r_hub_m"], igv["r_tip_m"]
+        t_v = max(0.0008, 0.06 * ch)                                   # vane thickness
+        sheet["igv"] = dict(material="AISI321", n=n_v, chord=ch * MM, thickness=t_v * MM, r_hub=rh * MM, r_tip=rt * MM,
+                            x0=igv["x0_m"] * MM, x1=igv["x1_m"] * MM, spindle_d=igv["spindle_d_m"] * MM,
+                            ring_r=igv["ring_r_m"] * MM, ring_width=igv["ring_width_m"] * MM, ring_material="Al6061-T6",
+                            hub_bullet_L=2.0 * ch * MM, duct_wall=wall_in, setting_max_deg=float(doc["inputs"].get("control", {}).get("igv_max_deg", 25.0)),
+                            bushings=f"{n_v} x PTFE-lined bronze, d {igv['spindle_d_m'] * MM:.1f} mm", actuator="rotary servo on the unison ring")
+        add_mass("igv_vanes", "AISI321", n_v * ch * (rt - rh) * t_v + n_v * math.pi / 4 * igv["spindle_d_m"] ** 2 * (wall_in * 1e-3 + 0.008))
+        add_mass("igv_ring", "Al6061-T6", geomlib.ring_volume(igv["ring_r_m"] + 0.004, igv["ring_r_m"], igv["ring_width_m"]))
+        add_mass("igv_hub_bullet", "Al6061-T6", math.pi / 3 * rh * rh * 2.0 * ch)
+        mass["igv_actuator"] = dict(material="servo + linkage", volume_cm3=None, mass_kg=0.06)
+
     # ------------------------------------------------------------ diffuser
     vt_in = g("vane_thickness_mm")
     vane_t = max(1.0, 0.012 * r2 * MM) if str(vt_in).lower() == "auto" else float(vt_in)
@@ -103,10 +118,12 @@ def run(doc: dict) -> dict:
     screw = components.screw_for_flange(clamp_load_N=(cb["Ro_m"] ** 2 * math.pi) * 4e5, n_screws=n_bolts,
                                         cls=g("flange_screw_class"))
     x_c0, x_c1 = lay["x_deswirl_end_m"] - 0.004, lay["x_ngv0_m"] + 0.002
+    bp = doc["outputs"].get("control", {}).get("bleed_port") if doc["outputs"].get("control", {}).get("bleed_enabled") else None
     sheet["casing"] = dict(
         material=cb["casing_material"], r_outer=r_env * MM, wall=wall_c * MM, x0=x_c0 * MM, x1=x_c1 * MM,
         n_bolts=n_bolts, screw=screw["id"], screw_dk=screw["dk"], screw_k=screw["k"], flange_thickness=3.0 * wall_c * MM,
         flange_width=screw["dk"] + 4.0, flange_x=[x_c0 * MM, x_c1 * MM],
+        bleed_port=(dict(x=bp["x_m"] * MM, d=bp["d_m"] * MM, boss_od=bp["d_m"] * MM + 8.0, boss_h=6.0) if bp else None),
     )
     add_mass("outer_casing", cb["casing_material"], geomlib.ring_volume(r_env, r_env - wall_c, x_c1 - x_c0)
              + 2 * geomlib.ring_volume(r_env + (screw["dk"] + 4) * 1e-3, r_env, 3 * wall_c))

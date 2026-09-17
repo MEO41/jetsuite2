@@ -30,7 +30,7 @@ $env:VIRTUAL_ENV="$PWD\.venv"; uv pip install -e . pytest
 jet new designs\p500 --thrust 500                    # create + core chain (0.4 s)
 jet set -d designs\p500 compressor.material=Al2618-T61 --run
 jet converge -d designs\p500
-jet analyze all -d designs\p500                      # maps, running line, envelope, transients, assessment, life, ...
+jet analyze all -d designs\p500                      # maps, running line, envelope, transients, assessment, life, ... (dependency waves run in parallel processes; --serial, --workers N)
 jet status -d designs\p500                           # fidelity tier / staleness / ingested overrides per stage
 jet rules -d designs\p500 --all
 jet study doe opr_bs --spec '{"variables": {"cycle.OPR": [3.2, 4.6], "compressor.backsweep_deg": [15, 40]}, "n": 32}' -d designs\p500
@@ -40,7 +40,23 @@ jet study sensitivity rank -d designs\p500
 jet export cfd compressor -d designs\p500            # handoff/compressor_cfd: curves, flowpath.step, case.json, ingest_template.json
 jet ingest designs\p500\handoff\compressor_cfd\ingest_template.json --run -d designs\p500
 jet correlate test_run.csv --calibrate -d designs\p500
-jet validate                                         # every method vs the validation database
+jet plot all -d designs\p500                         # layered compressor map (PNG/SVG/HTML), turbine map, Smith/Balje, Campbell
+jet freeze -d designs\p500 --by me --note "PDR"      # sign-off snapshot (hash-verifiable); `jet cad` / `jet export` need it (or --unfrozen-ok)
+jet compare designs\p500 designs\p500_sched --out designs\p500_sched\compare.md   # side-by-side: rules, margins with bands, running lines, map overlay
+jet fe disc -d designs\p500 --ingest                 # CalculiX axisymmetric disc case (native ccx or WSL), ingested as L3 stress
+jet fe impeller -d designs\p500 --ingest             # impeller hub case (blades as smeared traction)
+jet l3 -d designs\p500                               # every in-suite L3 solve, ingest, re-run, before/after delta (analysis/l3_delta.md)
+jet validate paper                                   # three commercial engines modelled from their datasheets, errors reported (docs/validation.md)
+jet rig compressor -d designs\p500_sched             # cold-flow compressor test article, drive, instrumentation, run matrix -> handoff/compressor_rig/
+jet cfd -d designs\p500_sched --iters 1200           # impeller passage CFD: SU2 RANS-SST, rotating frame, H-mesh, throttle continuation to the design flow; ingest gated (energy balance, docs/validation.md)
+jet analyze thermal -d designs\p500                  # secondary air, thermal network (rim/bore/bearing T predicted), oil system, bearing abort setting
+jet analyze throughflow -d designs\p500              # impeller meridional through-flow: blade loading, hub-to-shroud incidence, Cm field (L2.5)
+jet dashboard -d designs\p500                        # one self-contained HTML: headline, rules with bands, stage status, every plot
+jet ecu -d designs\p500_sched                        # controller export: schedules.csv, limits.json, logic.md (state machine, limiter arbitration, faults)
+jet drawings -d designs\p500_sched                   # shaft / housings / casing half-section drawings (SVG+PNG) with ISO fits -> handoff/drawings/
+jet cam impeller -d designs\p500_sched               # CAM package: blade surface grids, hub/shroud curves, STEP, fillet spec (+ fillet attempt); needs a frozen design
+jet set -d designs\p500 control.bleed_enabled=true control.igv_enabled=true --run   # variable geometry / control as design objects
+jet validate                                         # every method vs the validation database (`jet validate rigs`: HECC/CC3 surge calibration)
 jet cad -d designs\p500 ; jet report -d designs\p500 ; jet readiness -d designs\p500
 ```
 

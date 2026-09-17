@@ -32,7 +32,7 @@ DEFAULTS = {
     },
 }
 
-READS = ["inputs.layout.*", "outputs.requirements.max_diameter_mm", "outputs.requirements.max_length_mm",
+READS = ["inputs.layout.*", "inputs.control.igv_enabled", "outputs.requirements.max_diameter_mm", "outputs.requirements.max_length_mm",
          "outputs.compressor.r1s_m", "outputs.compressor.r2_m", "outputs.compressor.D2_m", "outputs.compressor.b2_m",
          "outputs.compressor.axial_length_m", "outputs.compressor.r4_m", "outputs.compressor.deswirl_length_m",
          "outputs.compressor.casing_outer_radius_m",
@@ -55,6 +55,21 @@ def run(doc: dict) -> dict:
     wall = float(l("casing_wall_mm")) * 1e-3
 
     x_inlet0 = -float(l("inlet_length_ratio")) * r1s
+    # variable inlet guide vanes (control input, not output: layout runs before control): a vane row ahead of the
+    # inducer with its own axial length, hub bullet, spindles through the duct wall and a unison ring outside it
+    ctl_in = doc.get("inputs", {}).get("control", {}) or {}
+    igv_fitted = bool(ctl_in.get("igv_enabled", False))
+    igv = dict(fitted=igv_fitted, x0_m=x_inlet0, x1_m=x_inlet0, L_m=0.0, chord_m=0.0, n_vanes=0, r_hub_m=0.0, r_tip_m=r1s,
+               spindle_d_m=0.0, ring_r_m=0.0, ring_width_m=0.0)
+    if igv_fitted:
+        chord = 0.35 * r1s                                   # flat-plate / low-camber vanes, aspect ratio ~2
+        gap = 0.5 * chord                                    # row-to-inducer axial gap
+        n_v = max(9, int(round(2 * math.pi * r1s / (1.1 * chord))))   # solidity ~0.9 at the tip
+        n_v = n_v + 1 if n_v % 2 == 0 else n_v               # odd count against the main-blade count
+        L_igv = chord + gap
+        igv.update(x0_m=x_inlet0 - L_igv, x1_m=x_inlet0 - gap, L_m=L_igv, chord_m=chord, n_vanes=n_v, r_hub_m=0.30 * r1s,
+                   r_tip_m=r1s, spindle_d_m=max(0.003, 0.12 * chord), ring_r_m=r1s + wall + 0.006, ring_width_m=0.6 * chord)
+        x_inlet0 = igv["x0_m"] - 0.15 * r1s                  # bellmouth ahead of the vane row
     x_imp_exit = L_imp
     rim = 0.06 * r2
     x_imp_back = L_imp + rim + 0.12 * r2          # back-face boss end (see geomlib.impeller_hub_profile)
@@ -96,7 +111,7 @@ def run(doc: dict) -> dict:
         check("LAY-4", "tail cone shorter than nozzle", L_cone, L_noz, "max", "geometry", hard=False),
     ]
     return dict(
-        x_inlet0_m=x_inlet0, x_impeller_nose_m=0.0, x_impeller_exit_m=x_imp_exit, x_impeller_back_m=x_imp_back,
+        x_inlet0_m=x_inlet0, igv=igv, x_impeller_nose_m=0.0, x_impeller_exit_m=x_imp_exit, x_impeller_back_m=x_imp_back,
         x_diffuser0_m=x_diff0, x_deswirl_end_m=x_desw_end, x_combustor0_m=x_comb0, x_combustor_end_m=x_comb_end,
         x_ngv0_m=x_ngv0, x_ngv1_m=x_ngv1, x_rotor0_m=x_rot0, x_rotor1_m=x_rot1, x_disc_mid_m=x_disc_mid,
         x_front_bearing_m=x_fb, x_rear_bearing_m=x_rb, bearing_span_m=span,

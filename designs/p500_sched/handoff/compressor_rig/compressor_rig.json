@@ -1,0 +1,484 @@
+{
+ "design": "p500",
+ "version": 48,
+ "at": "2026-09-16T19:41:07+00:00",
+ "test_article": {
+  "impeller": {
+   "D2_mm": 131.3968984197951,
+   "r1s_mm": 42.02160193143593,
+   "b2_mm": 7.694041629208182,
+   "n_main": 8,
+   "n_splitter": 8,
+   "backsweep_deg": 30.0,
+   "material": "Ti-6Al-4V",
+   "tip_clearance_mm": 0.2627937968395903,
+   "cad_part": "impeller.step (same file as the engine)"
+  },
+  "diffuser": {
+   "type": "vaned",
+   "r3_over_r2": 1.08,
+   "r4_mm": 90.66385990965861,
+   "n_vanes": 11,
+   "vane_LE_deg": 75.6065148561954,
+   "throat_mm": 13.847223191104623,
+   "cad_part": "diffuser.step"
+  },
+  "igv": {
+   "fitted": true,
+   "n_vanes": 17,
+   "chord_mm": 14.707560676002577,
+   "settings_deg": [
+    0.0,
+    12.5,
+    25.0
+   ],
+   "actuation": "manual indexed ring on the rig (0 / half / full setting), position read by potentiometer"
+  },
+  "deswirl_and_collector": {
+   "note": "engine deswirl cascade replaced by a plenum collector (r = 1.6 r4) with 4 static taps; exit to the throttle"
+  },
+  "shaft_and_bearings": {
+   "bearing": "71902C-HC",
+   "note": "engine front bearing pair on a rig shaft; rear support replaced by the drive coupling"
+  }
+ },
+ "drive": {
+  "type": "electric (PMSM) with VFD, or a cold-air turbine if > 60 kW",
+  "power_kW": 252.24903349062706,
+  "max_rpm": 79750.0,
+  "torque_Nm_at_design": 19.969850694255747,
+  "torque_meter": "inline strain-gauge torque meter, 0.5 % FS",
+  "coupling": "quill shaft, torsionally soft",
+  "note": "compressor power at design 151.6 kW; sized with 25 % margin at 110 % speed"
+ },
+ "instrumentation": [
+  {
+   "measurement": "inlet total pressure / temperature",
+   "sensor": "4 Pt probes + 2 PT100 in the bellmouth",
+   "range": "0.7-1.1 bar, 260-330 K",
+   "accuracy": "0.1 % / 0.3 K",
+   "closes": "corrected flow and speed"
+  },
+  {
+   "measurement": "mass flow",
+   "sensor": "calibrated bellmouth or upstream venturi (dP)",
+   "range": "0-1.13 kg/s",
+   "accuracy": "0.5 %",
+   "closes": "every map point"
+  },
+  {
+   "measurement": "impeller exit static pressure",
+   "sensor": "4 x Kulite fast statics at r = 1.03 r2, 20 kHz",
+   "range": "0-7.6 bar",
+   "accuracy": "0.5 %",
+   "closes": "stall precursors (rotating stall), surge onset, diffuser inlet Mach"
+  },
+  {
+   "measurement": "diffuser exit total pressure / temperature",
+   "sensor": "3 x 5-element Pt rakes + 3 TC rakes at r4",
+   "range": "0-7.6 bar, 300-507 K",
+   "accuracy": "0.2 % / 0.5 K",
+   "closes": "stage PR, isentropic efficiency (torque cross-check)"
+  },
+  {
+   "measurement": "collector static pressure",
+   "sensor": "4 static taps",
+   "range": "0-7.6 bar",
+   "accuracy": "0.2 %",
+   "closes": "back-pressure control"
+  },
+  {
+   "measurement": "spool speed",
+   "sensor": "60-tooth wheel + magnetic pickup",
+   "range": "0-83375 rpm",
+   "accuracy": "0.05 %",
+   "closes": "corrected speed"
+  },
+  {
+   "measurement": "shaft torque",
+   "sensor": "inline strain-gauge torque meter, 0.5 % FS",
+   "range": "0-29.95 N m",
+   "accuracy": "0.5 %",
+   "closes": "power-based efficiency"
+  },
+  {
+   "measurement": "tip clearance",
+   "sensor": "2 capacitive probes over the exducer",
+   "range": "0-1 mm",
+   "accuracy": "10 um",
+   "closes": "clearance effect on efficiency and surge (MFG-2)"
+  },
+  {
+   "measurement": "casing vibration",
+   "sensor": "2 accelerometers (radial, axial)",
+   "range": "0-50 g, 20 kHz",
+   "accuracy": "-",
+   "closes": "surge trip, rotor health"
+  },
+  {
+   "measurement": "throttle position",
+   "sensor": "motorised butterfly / cone valve with encoder",
+   "range": "0-100 %",
+   "accuracy": "0.1 %",
+   "closes": "operating point control"
+  }
+ ],
+ "speedlines": [
+  {
+   "N_frac": 0.4,
+   "rpm": 29000.0,
+   "W_corr_surge": 0.2528466812084253,
+   "PR_surge": 1.2461163560036692,
+   "W_corr_choke": 0.3300870511859338,
+   "PR_range": [
+    1.188964642406032,
+    1.3508313676514814
+   ],
+   "eta_max": 0.8368399855259281,
+   "surge_reason": "inducer",
+   "W_band": [
+    0.23349338272850242,
+    0.27219997968834814
+   ]
+  },
+  {
+   "N_frac": 0.5,
+   "rpm": 36250.0,
+   "W_corr_surge": 0.3150577002724939,
+   "PR_surge": 1.443535619900679,
+   "W_corr_choke": 0.3784152199566674,
+   "PR_range": [
+    1.3452485778005725,
+    1.5889675686060543
+   ],
+   "eta_max": 0.8390515999094451,
+   "surge_reason": "inducer",
+   "W_band": [
+    0.29094266865479407,
+    0.33917273189019376
+   ]
+  },
+  {
+   "N_frac": 0.6,
+   "rpm": 43500.0,
+   "W_corr_surge": 0.36978619349314323,
+   "PR_surge": 1.7571619301431913,
+   "W_corr_choke": 0.44414951174536765,
+   "PR_range": [
+    1.5911497418118725,
+    1.9170721558008859
+   ],
+   "eta_max": 0.841042293226647,
+   "surge_reason": "inducer",
+   "W_band": [
+    0.3414821535024896,
+    0.39809023348379685
+   ]
+  },
+  {
+   "N_frac": 0.7,
+   "rpm": 50750.0,
+   "W_corr_surge": 0.4601401066278568,
+   "PR_surge": 2.1426606426938397,
+   "W_corr_choke": 0.5314272803819498,
+   "PR_range": [
+    1.9619964071226956,
+    2.364757593571458
+   ],
+   "eta_max": 0.8433836855142547,
+   "surge_reason": "inducer",
+   "W_band": [
+    0.4249202303629525,
+    0.4953599828927611
+   ]
+  },
+  {
+   "N_frac": 0.8,
+   "rpm": 58000.0,
+   "W_corr_surge": 0.5587724645233036,
+   "PR_surge": 2.697560989446044,
+   "W_corr_choke": 0.6453402494082041,
+   "PR_range": [
+    2.4449128223491647,
+    2.9719971738260345
+   ],
+   "eta_max": 0.8453562179562537,
+   "surge_reason": "inducer",
+   "W_band": [
+    0.5160031062837649,
+    0.6015418227628424
+   ]
+  },
+  {
+   "N_frac": 0.9,
+   "rpm": 65250.0,
+   "W_corr_surge": 0.6590591250921631,
+   "PR_surge": 3.527774830763158,
+   "W_corr_choke": 0.7915946938306696,
+   "PR_range": [
+    3.0684887809340675,
+    3.791835512882099
+   ],
+   "eta_max": 0.8470863716897181,
+   "surge_reason": "inducer",
+   "W_band": [
+    0.6086136618459544,
+    0.7095045883383718
+   ]
+  },
+  {
+   "N_frac": 1.0,
+   "rpm": 72500.0,
+   "W_corr_surge": 0.8112464061208416,
+   "PR_surge": 4.5901657092439745,
+   "W_corr_choke": 0.9743865550524866,
+   "PR_range": [
+    3.855765407017116,
+    4.8933042731484235
+   ],
+   "eta_max": 0.8479160037093587,
+   "surge_reason": "diffuser",
+   "W_band": [
+    0.7491522795007679,
+    0.8733405327409154
+   ]
+  },
+  {
+   "N_frac": 1.05,
+   "rpm": 76125.0,
+   "W_corr_surge": 0.9325007299594661,
+   "PR_surge": 5.087837174699356,
+   "W_corr_choke": 1.0769683401610728,
+   "PR_range": [
+    4.302566511622854,
+    5.574975275626261
+   ],
+   "eta_max": 0.8476002613154773,
+   "surge_reason": "diffuser",
+   "W_band": [
+    0.8611255990959721,
+    1.00387586082296
+   ]
+  },
+  {
+   "N_frac": 1.1,
+   "rpm": 79750.0,
+   "W_corr_surge": 1.0734646780345174,
+   "PR_surge": 5.545591890917532,
+   "W_corr_choke": 1.151256740652922,
+   "PR_range": [
+    4.866282146718493,
+    6.362570805177552
+   ],
+   "eta_max": 0.8460480714860523,
+   "surge_reason": "diffuser",
+   "W_band": [
+    0.9912999360558354,
+    1.1556294200131993
+   ]
+  }
+ ],
+ "run_matrix": [
+  {
+   "speed_line": 0.4,
+   "rpm": 29000.0,
+   "procedure": "open throttle to choke, record 8 points closing toward surge; last 3 points at 2 % flow steps inside the predicted band",
+   "predicted": {
+    "W_corr_choke": 0.3300870511859338,
+    "W_corr_surge": 0.2528466812084253,
+    "surge_band_W_corr": [
+     0.23349338272850242,
+     0.27219997968834814
+    ],
+    "PR_surge": 1.2461163560036692
+   },
+   "igv_settings": [
+    0.0,
+    12.5,
+    25.0
+   ]
+  },
+  {
+   "speed_line": 0.5,
+   "rpm": 36250.0,
+   "procedure": "open throttle to choke, record 8 points closing toward surge; last 3 points at 2 % flow steps inside the predicted band",
+   "predicted": {
+    "W_corr_choke": 0.3784152199566674,
+    "W_corr_surge": 0.3150577002724939,
+    "surge_band_W_corr": [
+     0.29094266865479407,
+     0.33917273189019376
+    ],
+    "PR_surge": 1.443535619900679
+   },
+   "igv_settings": [
+    0.0,
+    12.5,
+    25.0
+   ]
+  },
+  {
+   "speed_line": 0.6,
+   "rpm": 43500.0,
+   "procedure": "open throttle to choke, record 8 points closing toward surge; last 3 points at 2 % flow steps inside the predicted band",
+   "predicted": {
+    "W_corr_choke": 0.44414951174536765,
+    "W_corr_surge": 0.36978619349314323,
+    "surge_band_W_corr": [
+     0.3414821535024896,
+     0.39809023348379685
+    ],
+    "PR_surge": 1.7571619301431913
+   },
+   "igv_settings": [
+    0.0,
+    12.5,
+    25.0
+   ]
+  },
+  {
+   "speed_line": 0.7,
+   "rpm": 50750.0,
+   "procedure": "open throttle to choke, record 8 points closing toward surge; last 3 points at 2 % flow steps inside the predicted band",
+   "predicted": {
+    "W_corr_choke": 0.5314272803819498,
+    "W_corr_surge": 0.4601401066278568,
+    "surge_band_W_corr": [
+     0.4249202303629525,
+     0.4953599828927611
+    ],
+    "PR_surge": 2.1426606426938397
+   },
+   "igv_settings": [
+    0.0,
+    12.5,
+    25.0
+   ]
+  },
+  {
+   "speed_line": 0.8,
+   "rpm": 58000.0,
+   "procedure": "open throttle to choke, record 8 points closing toward surge; last 3 points at 2 % flow steps inside the predicted band",
+   "predicted": {
+    "W_corr_choke": 0.6453402494082041,
+    "W_corr_surge": 0.5587724645233036,
+    "surge_band_W_corr": [
+     0.5160031062837649,
+     0.6015418227628424
+    ],
+    "PR_surge": 2.697560989446044
+   },
+   "igv_settings": [
+    0.0,
+    12.5,
+    25.0
+   ]
+  },
+  {
+   "speed_line": 0.9,
+   "rpm": 65250.0,
+   "procedure": "open throttle to choke, record 8 points closing toward surge; last 3 points at 2 % flow steps inside the predicted band",
+   "predicted": {
+    "W_corr_choke": 0.7915946938306696,
+    "W_corr_surge": 0.6590591250921631,
+    "surge_band_W_corr": [
+     0.6086136618459544,
+     0.7095045883383718
+    ],
+    "PR_surge": 3.527774830763158
+   },
+   "igv_settings": [
+    0.0,
+    12.5,
+    25.0
+   ]
+  },
+  {
+   "speed_line": 1.0,
+   "rpm": 72500.0,
+   "procedure": "open throttle to choke, record 8 points closing toward surge; last 3 points at 2 % flow steps inside the predicted band",
+   "predicted": {
+    "W_corr_choke": 0.9743865550524866,
+    "W_corr_surge": 0.8112464061208416,
+    "surge_band_W_corr": [
+     0.7491522795007679,
+     0.8733405327409154
+    ],
+    "PR_surge": 4.5901657092439745
+   },
+   "igv_settings": [
+    0.0,
+    12.5,
+    25.0
+   ]
+  },
+  {
+   "speed_line": 1.05,
+   "rpm": 76125.0,
+   "procedure": "open throttle to choke, record 8 points closing toward surge; last 3 points at 2 % flow steps inside the predicted band",
+   "predicted": {
+    "W_corr_choke": 1.0769683401610728,
+    "W_corr_surge": 0.9325007299594661,
+    "surge_band_W_corr": [
+     0.8611255990959721,
+     1.00387586082296
+    ],
+    "PR_surge": 5.087837174699356
+   },
+   "igv_settings": [
+    0.0,
+    12.5,
+    25.0
+   ]
+  },
+  {
+   "speed_line": 1.1,
+   "rpm": 79750.0,
+   "procedure": "open throttle to choke, record 8 points closing toward surge; last 3 points at 2 % flow steps inside the predicted band",
+   "predicted": {
+    "W_corr_choke": 1.151256740652922,
+    "W_corr_surge": 1.0734646780345174,
+    "surge_band_W_corr": [
+     0.9912999360558354,
+     1.1556294200131993
+    ],
+    "PR_surge": 5.545591890917532
+   },
+   "igv_settings": [
+    0.0,
+    12.5,
+    25.0
+   ]
+  }
+ ],
+ "safety": {
+  "surge_detection": "Kulite rms > 3 x baseline or collector pressure drop > 5 % in 20 ms -> throttle opens fully (< 100 ms actuator)",
+  "overspeed": "trip at 112 % design speed",
+  "vibration": "trip at 20 g casing",
+  "temperature": "trip at 507 K diffuser exit",
+  "max_surge_cycles": "stop the line after 3 surge events; inspect the exducer"
+ },
+ "expected": {
+  "replaces": [
+   "compressor_map.lines[*].surge_W_corr (measured)",
+   "compressor_map.lines[*].choke_W_corr",
+   "design-point eta (torque and rake)"
+  ],
+  "shrinks": [
+   "rig band 0.077 -> read-off band ~0.02 (this compressor, no transcription unknowns)",
+   "IGV extrapolation term -> measured pre-swirl effect"
+  ],
+  "ingest": {
+   "stage": "maps",
+   "fields": "surge_W_corr per line, choke_W_corr, eta_design",
+   "tier": "L3",
+   "via": "jet ingest handoff/compressor_rig/ingest_template.json"
+  }
+ },
+ "design_point": {
+  "W_kg_s": 0.867350300117063,
+  "PR": 4.0,
+  "rpm": 72500.0,
+  "P_compressor_kW": 151.61474589970064
+ }
+}

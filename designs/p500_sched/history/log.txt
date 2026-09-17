@@ -1,0 +1,56 @@
+v0001  2026-09-16T14:41:45  created
+v0002  2026-09-16T14:41:47  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, geometry
+v0003  2026-09-16T14:41:49  converge (2 passes): eta_c 0.805, eta_t 0.873
+v0004  2026-09-16T16:12:35  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, geometry
+v0005  2026-09-16T16:18:10  analyze maps FAILED offdesign
+v0006  2026-09-16T16:20:14  analyze offdesign
+v0007  2026-09-16T16:21:34  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, geometry
+v0008  2026-09-16T16:21:57  analyze maps, offdesign
+v0009  2026-09-16T16:23:24  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, geometry
+v0010  2026-09-16T16:23:46  analyze maps, offdesign
+v0011  2026-09-16T16:40:50  analyze offdesign, envelope, transient
+v0012  2026-09-16T16:53:14  analyze maps, offdesign, assess, transient, combustor1d, envelope, life, rotordyn, manufacturing, testbench
+v0013  2026-09-16T16:58:14  analyze transient, combustor1d, life, rotordyn, manufacturing, testbench
+v0014  2026-09-16T17:00:16  analyze transient, combustor1d, life, manufacturing
+v0015  2026-09-16T17:00:36  analyze combustor1d
+v0016  2026-09-16T19:46:20  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, control, geometry
+v0017  2026-09-16T19:51:09  set control.bleed_enabled=True, control.nozzle_variable=True
+v0018  2026-09-16T19:51:09  run control, geometry
+v0019  2026-09-16T19:53:23  analyze maps, offdesign, transient
+v0020  2026-09-16T19:56:31  set control.start_ramp_rate=0.25
+v0021  2026-09-16T19:56:31  run control
+v0022  2026-09-16T19:56:32  analyze life
+v0023  2026-09-16T19:56:33  set control.start_ramp_rate=0.1
+v0024  2026-09-16T19:56:33  run control
+v0025  2026-09-16T19:56:34  analyze life
+v0026  2026-09-16T19:56:35  set control.start_ramp_rate=0.05
+v0027  2026-09-16T19:56:36  run control
+v0028  2026-09-16T19:56:37  analyze life
+v0029  2026-09-16T19:56:38  set control.start_ramp_rate=0.02
+v0030  2026-09-16T19:56:38  run control
+v0031  2026-09-16T19:56:39  analyze life
+v0032  2026-09-16T19:56:40  set control.start_ramp_rate=0.01
+v0033  2026-09-16T19:56:40  run control
+v0034  2026-09-16T19:56:42  analyze life
+v0035  2026-09-16T19:56:43  set control.start_ramp_rate=0.25
+v0036  2026-09-16T19:56:43  run control
+v0037  2026-09-16T20:05:42  set control.igv_enabled=True, control.bleed_max_frac=0.15, control.nozzle_A8_low_speed=1.3
+v0038  2026-09-16T20:05:43  run control, geometry
+v0039  2026-09-16T20:06:18  analyze maps, offdesign
+v0040  2026-09-16T20:10:50  analyze transient, envelope
+v0041  2026-09-16T20:16:00  analyze transient
+v0042  2026-09-16T21:30:09  analyze maps, offdesign, assess, transient, combustor1d, envelope, life, rotordyn, manufacturing, testbench
+v0043  2026-09-16T21:35:13  analyze offdesign, transient, envelope
+v0044  2026-09-16T21:39:12  run layout, geometry
+v0045  2026-09-16T21:40:43  analyze transient
+v0046  2026-09-16T21:41:31  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, control, geometry
+v0047  2026-09-16T21:43:24  analyze transient
+v0048  2026-09-16T21:45:19  analyze maps
+v0049  2026-09-17T00:33:55  ingest mechanical: impeller.sigma_peak_Pa [L3] CalculiX 2.21 axisymmetric CAX4 impeller hub, 7921 elements, blades as smeared traction, 2026-09-16T21:33:55+00:00; peak >= 1 mm from re-entrant corners
+v0050  2026-09-17T00:34:00  ingest mechanical: turbine.sigma_peak_Pa, turbine.sigma_avg_Pa [L3] CalculiX 2.21 axisymmetric CAX4 disc, 2379 elements, 2026-09-16T21:34:00+00:00
+v0051  2026-09-17T00:34:00  ingest life: sigma_bore_total_Pa [L3] CalculiX 2.21 axisymmetric CAX4 disc, 2379 elements, 2026-09-16T21:34:00+00:00; peak taken >= 1 mm from the unfilleted re-entrant corners (singular there)
+v0052  2026-09-17T00:34:00  run mechanical
+v0053  2026-09-17T00:34:00  analyze life
+v0054  2026-09-17T09:01:28  analyze throughflow
+v0055  2026-09-17T09:31:22  analyze offdesign, thermal, rotordyn, manufacturing, combustor1d, transient, life, testbench
+v0056  2026-09-17T09:34:11  analyze transient

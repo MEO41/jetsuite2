@@ -6,3 +6,4 @@ __pycache__/
 designs/*/cad/cache/
 designs/*/cad/*.glb
 *.tmp
+tools/su2/

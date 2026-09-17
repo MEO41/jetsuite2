@@ -1,0 +1,3 @@
+v0001  2026-09-16T22:24:00  created
+v0002  2026-09-16T22:24:00  run requirements, cycle, speed, compressor, turbine, combustor, layout, rotor, mechanical, control, geometry
+v0003  2026-09-16T22:24:13  analyze maps

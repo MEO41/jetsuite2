@@ -227,6 +227,8 @@ def cmd_library(args):
 
 def cmd_cad(args):
     d = _design(args)
+    from .compare import require_frozen
+    require_frozen(d, getattr(args, "unfrozen_ok", False), "CAD build")
     from .cad import build as cad_build
     t0 = time.perf_counter()
     res = cad_build.build(d, parts=args.parts.split(",") if args.parts else None, force=args.force,
@@ -248,7 +250,7 @@ def cmd_analyze(args):
     from .stages import ANALYSIS
     names = None if (not args.names or args.names == "all") else args.names.split(",")
     t0 = time.perf_counter()
-    rep = d.analyze(names, force=args.force, verbose=print)
+    rep = d.analyze(names, force=args.force, verbose=print, parallel=not args.serial, workers=args.workers)
     print(f"analysis finished in {time.perf_counter()-t0:.1f} s  (available: {', '.join(ANALYSIS)})")
     print(rep.summary())
     print(d.rules_text(only_problems=True))
@@ -261,6 +263,10 @@ def cmd_status(args):
     for r in d.status():
         ov = ", ".join(f"{k}[{t}]" for k, t in r["overrides"].items()) or "-"
         print(f"  {r['stage']:<14} {'core' if r['core'] else 'analysis':<9} {r['tier']:<5} {r['at'] or 'never':<20} {r['stale'][:32]:<32} {ov}")
+    from .plots import plots_stale
+    ps = plots_stale(d)
+    if ps:
+        print(f"  plots (analysis/plots) stale: inputs changed in {', '.join(ps)} -> `jet plot all`")
 
 
 def cmd_ingest(args):
@@ -304,6 +310,8 @@ def cmd_validate(args):
         rows += cases.validate_compressor_model()
     if args.what in ("all", "turbine"):
         rows += cases.validate_turbine_model()
+    if args.what in ("all", "rigs"):
+        rows += cases.validate_rigs()
     if args.what in ("all", "fleet"):
         def factory(e):
             tmp = Path(tempfile.mkdtemp(prefix="jet_val_"))
@@ -312,6 +320,40 @@ def cmd_validate(args):
             d.run()
             return d
         rows += cases.validate_design_chain(factory)
+    if args.what in ("all", "paper"):
+        def paper_factory(e):
+            tmp = Path(tempfile.mkdtemp(prefix="jet_paper_"))
+            ov = {"requirements.thrust_N": e["design"]["thrust_N"], "cycle.OPR": e["design"]["OPR"], "speed.rpm": e["design"]["rpm"]}
+            d = _D.create(tmp / "d", e["name"], ov)
+            d.run()
+            try:
+                d.converge(verbose=None)      # cycle efficiencies consistent with the loss models before matching
+            except Exception:  # noqa: BLE001
+                pass
+            # the real engine's turbine inlet temperature is not published; back it out from the published max EGT
+            # (secant on cycle.T04_K so that the design-point Tt5 matches), so thrust / fuel / flow test the sizing
+            # and matching rather than a guessed T04
+            egt = next((p.get("EGT_K") for p in e["points"] if p.get("name") == "max" and p.get("EGT_K")), None)
+            if egt:
+                T = float(d.doc["inputs"]["cycle"].get("T04_K", 1150.0)); prev = None
+                for _ in range(8):
+                    f = d.outputs("cycle")["Tt5_K"] - egt
+                    if abs(f) < 1.0:
+                        break
+                    if prev is not None and abs(f - prev[1]) > 1e-6:
+                        T_new = T - f * (T - prev[0]) / (f - prev[1])
+                    else:
+                        T_new = T - f * 1.15          # Tt5 moves ~0.87 K per K of T04
+                    prev = (T, f)
+                    T = min(max(T_new, 900.0), 1400.0)
+                    d.set({"cycle.T04_K": T}); d.run()
+                e["design"]["T04_K_solved"] = T
+                print(f"    T04 backed out from EGT {egt:.0f} K: {T:.0f} K (design-point Tt5 {d.outputs('cycle')['Tt5_K']:.0f} K)")
+            rep = d.analyze(["maps"], verbose=None)
+            if rep.failed:
+                raise RuntimeError(f"maps failed: {rep.failed}")
+            return d
+        rows += cases.validate_paper(paper_factory, verbose=print)
     print(cases.format_results(rows))
     n_out = sum(1 for r in rows if r["error"] is not None and abs(r["error"]) > r["tolerance"])
     print(f"{len(rows)} comparisons, {n_out} outside tolerance")
@@ -321,6 +363,8 @@ def cmd_validate(args):
 
 def cmd_export(args):
     d = _design(args)
+    from .compare import require_frozen
+    require_frozen(d, getattr(args, "unfrozen_ok", False), f"{args.kind} export")
     from . import handoff
     if args.kind == "cfd":
         res = handoff.export_cfd(d, args.component)
@@ -365,6 +409,224 @@ def cmd_readiness(args):
     out.write_text(text, encoding="utf-8")
     print(text)
     print(f"\n(written to {out})")
+
+
+def cmd_freeze(args):
+    d = _design(args)
+    from . import compare as cmp
+    if args.verify:
+        vs = cmp.frozen_versions(d)
+        if not vs:
+            print("no frozen versions"); return
+        for v in vs:
+            r = cmp.verify_frozen(d, v)
+            print(f"  v{v:04d}  {'OK   ' if r['ok'] else 'BAD  '} file-hash {r.get('file_hash_ok')}  content-hash {r.get('content_hash_ok')}  by {r.get('by')}  at {r.get('at')}  {r.get('note') or ''}")
+        return
+    if args.status or not args.by:
+        st = cmp.freeze_status(d)
+        print(f"design '{d.doc['name']}' v{d.store.version}: {'FROZEN' if st['frozen'] else 'not frozen'} -- {st['reason']}")
+        if st.get("record"):
+            rec = st["record"]
+            print(f"  open risks at freeze: {rec['n_fail']} fail, {rec['n_warn']} warn; analyses present: {', '.join(rec.get('analyses_present') or []) or 'none'}")
+        if not args.status and not args.by:
+            print("  (to freeze: jet freeze --by <name> [--note ...])")
+        return
+    rec = cmp.freeze(d, args.by, args.note or "")
+    print(f"frozen '{d.doc['name']}' as v{rec['version']:04d} by {rec['by']} ({rec['at']})  content {rec['content_hash']}")
+    print(f"  open risks recorded: {rec['n_fail']} fail, {rec['n_warn']} warn")
+    for r in rec["open_risks"]:
+        print(f"    {r['verdict']:<4} {r['id']:<8} {r['name']}  [{r.get('tier') or '-'}]")
+    print(f"  snapshot: frozen/v{rec['version']:04d}.json (+ .sha256)")
+
+
+def cmd_compare(args):
+    from . import compare as cmp
+    doc_a, name_a = cmp.load_spec(args.a)
+    doc_b, name_b = cmp.load_spec(args.b)
+    res = cmp.compare(doc_a, doc_b, name_a, name_b)
+    text = cmp.render(res)
+    out = Path(args.out) if args.out else None
+    if out:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        png = cmp.plot_compare(doc_a, doc_b, name_a, name_b, out.with_suffix(".png"))
+        if png:
+            text += "\n![map overlay](" + Path(png).name + ")\n"
+        out.write_text(text, encoding="utf-8")
+        print(text)
+        print(f"(written to {out}{' and ' + png if png else ''})")
+    else:
+        print(text)
+
+
+def cmd_fe(args):
+    d = _design(args)
+    if args.what in ("impeller", "all"):
+        from .fea import disc
+        t0 = time.perf_counter()
+        res = disc.run_impeller_case(d, cell_mm=args.cell)
+        print(f"impeller hub: solver {res['solver'].get('mode')}  run ok: {res['run']['ok']}  ({time.perf_counter()-t0:.1f} s)  mesh {res['mesh']['n_elements']} CAX4")
+        if not res["run"]["ok"]:
+            sys.exit(f"CalculiX run failed, see {res['run']['log']}")
+        print(f"  L1 reference: sigma_peak {res['reference_L1']['sigma_peak_Pa']/1e6:.0f} MPa (k_peak disc factor), sigma_avg {res['reference_L1']['sigma_avg_Pa']/1e6:.0f} MPa")
+        for name, st in res["steps"].items():
+            print(f"  {name:<22} vM max {st['vm_max_Pa']/1e6:7.1f} MPa at corner (singular)  | >= 1 mm from corners: vM {st['vm_max_away_Pa']/1e6:7.1f} MPa "
+                  f"at (r {st['peak_away_r_m']*1e3:.1f}, x {st['peak_away_x_m']*1e3:.1f} mm)  hoop mean {st['hoop_mean_Pa']/1e6:7.1f}")
+        if args.ingest and res.get("ingest_file"):
+            for e in json.loads(Path(res["ingest_file"]).read_text(encoding="utf-8")):
+                r = d.ingest(e["stage"], e["fields"], tier=e.get("tier", "L3"), source=e.get("source", "impeller FE"))
+                print(f"  ingested into {e['stage']}: {', '.join(e['fields'])} -> stale: {', '.join(r['stale']) or 'nothing'}")
+    if args.what in ("disc", "all"):
+        from .fea import disc
+        t0 = time.perf_counter()
+        res = disc.run_disc_case(d, cell_mm=args.cell, variant=args.variant)
+        print(f"variant: {res['variant']}")
+        print(f"solver: {res['solver']}  run ok: {res['run']['ok']}  ({time.perf_counter()-t0:.1f} s)  mesh {res['mesh']['n_elements']} CAX4 elements")
+        if not res["run"]["ok"]:
+            sys.exit(f"CalculiX run failed, see {res['run']['log']}")
+        ref = res["reference_L1"]
+        print(f"  L1 reference: sigma_peak {ref['sigma_peak_Pa']/1e6:.0f} MPa, sigma_avg {ref['sigma_avg_Pa']/1e6:.0f} MPa")
+        for name, st in res["steps"].items():
+            print(f"  {name:<26} vM max {st['vm_max_Pa']/1e6:7.1f} MPa at corner (r {st['peak_r_m']*1e3:.1f}, x {st['peak_x_m']*1e3:.1f} mm; singular)  "
+                  f"| >= 1 mm from corners: vM {st['vm_max_away_Pa']/1e6:7.1f} MPa at (r {st['peak_away_r_m']*1e3:.1f}, x {st['peak_away_x_m']*1e3:.1f})  "
+                  f"hoop max {st['hoop_max_away_Pa']/1e6:7.1f}  hoop mean {st['hoop_mean_Pa']/1e6:7.1f}")
+        th = res["loads"]["thermal"]
+        print(f"  start thermal state at dT_max: rim {th['T_rim_K']:.0f} K, bore {th['T_bore_K']:.0f} K (dT {th['dT_max_K']:.0f} K at t {th['t_s']:.1f} s)")
+        print(f"  ingest file: {res.get('ingest_file')}")
+        if args.ingest and res.get("ingest_file"):
+            payload = json.loads(Path(res["ingest_file"]).read_text(encoding="utf-8"))
+            for e in payload:
+                r = d.ingest(e["stage"], e["fields"], tier=e.get("tier", "L3"), source=e.get("source", "disc FE"))
+                print(f"  ingested into {e['stage']}: {', '.join(e['fields'])} -> stale: {', '.join(r['stale']) or 'nothing'}")
+            t0 = time.perf_counter()
+            d.run()
+            rep = d.analyze(["life"], verbose=None)
+            print(f"  re-ran core + life in {time.perf_counter()-t0:.1f} s")
+            print(d.rules_text(only_problems=True))
+    if args.what not in ("disc", "impeller", "all"):
+        sys.exit("unknown FE case")
+
+
+def cmd_rig(args):
+    d = _design(args)
+    from . import rig
+    if not d.outputs("maps"):
+        sys.exit("the rig definition needs the compressor map: run `jet analyze maps` first")
+    res = rig.write(d)
+    print(f"cold-flow compressor rig written -> {res['dir']} ({', '.join(res['files'])}; {res['n_lines']} speed lines in the run matrix)")
+    print((Path(res["dir"]) / "compressor_rig.md").read_text(encoding="utf-8"))
+
+
+def cmd_l3(args):
+    """Roadmap 5: one command from design state to ingested solver results and the delta report."""
+    d = _design(args)
+    from .fea import disc
+    from . import compare as cmp
+    v_before = d.store.version
+    t0 = time.perf_counter()
+    ingested = []
+    for what, fn in (("impeller", disc.run_impeller_case), ("disc", disc.run_disc_case)):
+        if args.only and what not in args.only.split(","):
+            continue
+        res = fn(d, cell_mm=args.cell)
+        print(f"  {what:<9} FE: {'ok' if res['run']['ok'] else 'FAILED'}  mesh {res['mesh']['n_elements']} CAX4  "
+              + (", ".join(f"{k} vM {v['vm_max_away_Pa']/1e6:.0f} MPa" for k, v in res.get("steps", {}).items())))
+        if not res["run"]["ok"]:
+            sys.exit(f"CalculiX failed, see {res['run']['log']}")
+        for e in json.loads(Path(res["ingest_file"]).read_text(encoding="utf-8")):
+            d.ingest(e["stage"], e["fields"], tier=e.get("tier", "L3"), source=e.get("source", f"{what} FE"))
+            ingested += [f"{e['stage']}.{k}" for k in e["fields"]]
+    print(f"  ingested: {', '.join(ingested)}")
+    d.run()
+    rep = d.analyze(["life"], verbose=None)
+    if rep.failed:
+        print(f"  life stage failed: {rep.failed}")
+    v_after = d.store.version
+    print(f"  L3 loop done in {time.perf_counter()-t0:.1f} s: v{v_before:04d} -> v{v_after:04d}")
+    doc_a, na = cmp.load_spec(f"{d.dir}@v{v_before}")
+    doc_b, nb = cmp.load_spec(str(d.dir))
+    res = cmp.compare(doc_a, doc_b, f"before L3 (v{v_before:04d})", f"after L3 (v{v_after:04d})")
+    changed = [r for r in res["rules"] if r["changed"] and r["a"] and r["b"]]
+    print("  what moved when L3 replaced L1:")
+    for r in changed:
+        print(f"    {r['id']:<8} {r['name'][:52]:<52} {r['a']['value']:.4g} ({r['a']['verdict']}) -> {r['b']['value']:.4g} ({r['b']['verdict']})")
+    out = Path(d.dir) / "analysis" / "l3_delta.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(cmp.render(res), encoding="utf-8")
+    print(f"  delta report: {out}")
+
+
+def cmd_dashboard(args):
+    d = _design(args)
+    from . import dashboard
+    out = dashboard.write(d)
+    print(f"dashboard written -> {out} ({Path(out).stat().st_size/1e6:.1f} MB, self-contained)")
+
+
+def cmd_ecu(args):
+    d = _design(args)
+    from . import ecu
+    res = ecu.export(d)
+    print(f"ECU tables written -> {res['dir']} ({', '.join(res['files'])}; {res['rows']} schedule rows)")
+    print((Path(res["dir"]) / "logic.md").read_text(encoding="utf-8")[:1500])
+
+
+def cmd_drawings(args):
+    d = _design(args)
+    from . import drawings
+    res = drawings.write(d)
+    print(f"drawings written -> {res['dir']}: {', '.join(sorted(res['files']))}")
+    for name, rows in res["tables"].items():
+        print(f"  {name}: " + "; ".join(f"{r['feature']} {r['fit']}" for r in rows))
+
+
+def cmd_cam(args):
+    d = _design(args)
+    from .compare import require_frozen
+    require_frozen(d, getattr(args, "unfrozen_ok", False), "CAM package")
+    from . import cam
+    t0 = time.perf_counter()
+    res = cam.write(d, try_fillet=not args.no_fillet, verbose=print if args.verbose else None)
+    print(f"CAM package written -> {res['dir']} ({time.perf_counter()-t0:.1f} s): {', '.join(sorted(res['files']))}")
+    print(f"  fillet r {res['fillet']['radius_mm']} mm: {'applied' if res['fillet']['applied'] else 'NOT applied'} -- {res['fillet']['note']}")
+
+
+def cmd_cfd(args):
+    d = _design(args)
+    from .cfd import impeller as cfd_imp
+    t0 = time.perf_counter()
+    case = cfd_imp.run_case(d, iters=args.iters, threads=args.threads, size_mm=args.size, size_blade_mm=args.size_blade,
+                            verbose=print, solve=not args.mesh_only, mesher=args.mesher, euler=args.euler)
+    m = case["mesh"]
+    print(f"mesher {case['domain'].get('mesher')}: {m['n_tets']} cells / {m['n_nodes']} nodes, markers {m['markers']}  ({time.perf_counter()-t0:.0f} s)")
+    if args.mesh_only:
+        print(f"mesh-only: config written to {case['config']} (outlet p {case['p_out_Pa']:.0f} Pa)")
+        return
+    run = case.get("run", {})
+    print(f"SU2: {'ok' if run.get('ok') else 'FAILED'} ({run.get('exe')}), log {run.get('log')}")
+    r = case.get("result") or {}
+    if r.get("ok"):
+        print(f"  inlet W {r['W_in']:.4f} kg/s (target {case['target_mass_flow_kg_s']:.4f} per passage), PR_tt {r['PR_tt']:.3f}, T ratio {r['T_ratio']:.4f}, eta_tt {r['eta_tt']:.3f}, rms rho {r['rms_rho_last']}")
+        print(f"  L1 reference: eta_impeller_assumed {case['reference_L1']['eta_impeller_assumed']}, PR_impeller_tt {case['reference_L1']['PR_impeller_tt']}")
+        if args.ingest and case.get("ingest_file"):
+            for e in json.loads(Path(case["ingest_file"]).read_text(encoding="utf-8")):
+                rr = d.ingest(e["stage"], e["fields"], tier=e.get("tier", "L3"), source=e.get("source", "impeller CFD"))
+                print(f"  ingested into {e['stage']}: {', '.join(e['fields'])} -> stale: {', '.join(rr['stale']) or 'nothing'}")
+            d.run()
+    else:
+        print(f"  post-processing: {r.get('error', 'no result')}")
+
+
+def cmd_plot(args):
+    d = _design(args)
+    from . import plots
+    what = args.what
+    if what == "map":
+        w = plots.plot_compressor_map(d, formats=("png", "svg", "html"))
+    elif what == "turbine":
+        w = plots.plot_turbine_map(d)
+    else:
+        w = plots.plot_all(d)
+    print(json.dumps(w, indent=2))
 
 
 def cmd_report(args):
@@ -430,15 +692,20 @@ def main(argv=None):
                                     "seals", "materials"])
     p.add_argument("--bore", type=float); p.set_defaults(fn=cmd_library)
 
-    p = sub.add_parser("cad", help="build the CAD (only parts whose geometry changed)"); common(p)
+    p = sub.add_parser("cad", help="build the CAD (only parts whose geometry changed); refuses on an unfrozen design"); common(p)
     p.add_argument("--parts"); p.add_argument("--force", action="store_true"); p.add_argument("--no-assembly", action="store_true")
+    p.add_argument("--unfrozen-ok", action="store_true", help="override the freeze gate")
     p.set_defaults(fn=cmd_cad)
 
     p = sub.add_parser("report", help="write a markdown design report"); common(p); p.set_defaults(fn=cmd_report)
 
+    p = sub.add_parser("plot", help="layered compressor map (surge band, choke, islands, running lines, transients) and turbine map"); common(p)
+    p.add_argument("what", nargs="?", default="map", choices=["map", "turbine", "all"]); p.set_defaults(fn=cmd_plot)
+
     p = sub.add_parser("analyze", help="run analysis stages (maps, offdesign, envelope, transient, assess, life, ...)"); common(p)
     p.add_argument("names", nargs="?", default="all", help="comma-separated stage names or 'all'")
-    p.add_argument("--force", action="store_true"); p.set_defaults(fn=cmd_analyze)
+    p.add_argument("--force", action="store_true"); p.add_argument("--serial", action="store_true", help="one stage at a time")
+    p.add_argument("--workers", type=int, default=4); p.set_defaults(fn=cmd_analyze)
 
     p = sub.add_parser("status", help="fidelity tier, staleness and overrides per stage"); common(p); p.set_defaults(fn=cmd_status)
 
@@ -448,7 +715,50 @@ def main(argv=None):
 
     p = sub.add_parser("export", help="L3 hand-off package (geometry + BCs + material card) for CFD / FEA"); common(p)
     p.add_argument("kind", choices=["cfd", "fea"]); p.add_argument("component", help="compressor|turbine (cfd), impeller|turbine (fea)")
+    p.add_argument("--unfrozen-ok", action="store_true", help="override the freeze gate")
     p.set_defaults(fn=cmd_export)
+
+    p = sub.add_parser("fe", help="run an in-suite L3 finite-element case (CalculiX): disc"); common(p)
+    p.add_argument("what", choices=["disc", "impeller", "all"]); p.add_argument("--cell", type=float, default=0.5, help="mesh cell size [mm]")
+    p.add_argument("--ingest", action="store_true", help="ingest the result as L3 overrides and re-run life (as-designed variant only)")
+    p.add_argument("--variant", default="as-designed", choices=["as-designed", "boreless"], help="what-if geometry (no ingest)")
+    p.set_defaults(fn=cmd_fe)
+
+    p = sub.add_parser("rig", help="define the cold-flow compressor test article, drive, instrumentation and run matrix"); common(p)
+    p.add_argument("what", nargs="?", default="compressor", choices=["compressor"]); p.set_defaults(fn=cmd_rig)
+
+    p = sub.add_parser("l3", help="run every in-suite L3 solve (impeller + disc FE), ingest, re-run, and report what moved"); common(p)
+    p.add_argument("--only", help="comma-separated subset: impeller,disc"); p.add_argument("--cell", type=float, default=0.5)
+    p.set_defaults(fn=cmd_l3)
+
+    p = sub.add_parser("dashboard", help="single self-contained HTML: headline, rules with bands, stage status, every plot"); common(p)
+    p.set_defaults(fn=cmd_dashboard)
+
+    p = sub.add_parser("ecu", help="export the controller: schedules.csv, limits.json, logic.md, ecu_tables.json"); common(p)
+    p.set_defaults(fn=cmd_ecu)
+
+    p = sub.add_parser("drawings", help="2D drawings with tolerances (shaft, housings, casing) -> handoff/drawings/"); common(p)
+    p.set_defaults(fn=cmd_drawings)
+
+    p = sub.add_parser("cam", help="CAM-ready impeller package (surface grids, STEP, fillet spec / attempt); needs a frozen design"); common(p)
+    p.add_argument("what", nargs="?", default="impeller", choices=["impeller"]); p.add_argument("--no-fillet", action="store_true")
+    p.add_argument("--unfrozen-ok", action="store_true"); p.add_argument("--verbose", action="store_true"); p.set_defaults(fn=cmd_cam)
+
+    p = sub.add_parser("cfd", help="impeller passage CFD (SU2 RANS, rotating frame) from the design state; --mesh-only to build the case without solving"); common(p)
+    p.add_argument("what", nargs="?", default="impeller", choices=["impeller"]); p.add_argument("--mesh-only", action="store_true")
+    p.add_argument("--iters", type=int, default=1500); p.add_argument("--threads", type=int, default=4)
+    p.add_argument("--size", type=float, default=1.5, help="far-field cell size [mm]"); p.add_argument("--size-blade", type=float, default=0.5, help="blade / shroud cell size [mm]")
+    p.add_argument("--mesher", default="hmesh", choices=["hmesh", "cad"]); p.add_argument("--euler", action="store_true", help="inviscid check run")
+    p.add_argument("--ingest", action="store_true"); p.set_defaults(fn=cmd_cfd)
+
+    p = sub.add_parser("freeze", help="freeze the design (sign-off snapshot, hash-verifiable); no args = status"); common(p)
+    p.add_argument("--by", help="who signs off"); p.add_argument("--note", help="what this freeze is for")
+    p.add_argument("--status", action="store_true"); p.add_argument("--verify", action="store_true", help="verify every frozen snapshot")
+    p.set_defaults(fn=cmd_freeze)
+
+    p = sub.add_parser("compare", help="side-by-side of two designs / versions: dir, dir@vNNNN or dir@frozen")
+    p.add_argument("a"); p.add_argument("b"); p.add_argument("--out", help="write markdown (+ map overlay png) here")
+    p.set_defaults(fn=cmd_compare)
 
     p = sub.add_parser("correlate", help="compare / calibrate the model against test data (CSV)"); common(p)
     p.add_argument("csv"); p.add_argument("--calibrate", action="store_true"); p.add_argument("--tune", help="comma-separated coefficients")
@@ -457,7 +767,7 @@ def main(argv=None):
     p = sub.add_parser("readiness", help="write the test-readiness report"); common(p); p.set_defaults(fn=cmd_readiness)
 
     p = sub.add_parser("validate", help="run the analysis methods against the validation database")
-    p.add_argument("what", nargs="?", default="all", choices=["all", "compressor", "turbine", "fleet"])
+    p.add_argument("what", nargs="?", default="all", choices=["all", "compressor", "turbine", "rigs", "fleet", "paper"])
     p.add_argument("--write", help="write the comparison rows to a JSON file"); p.set_defaults(fn=cmd_validate)
 
     p = sub.add_parser("study", help="design-space studies: sweep / doe / optimize / uq / sensitivity"); common(p)
